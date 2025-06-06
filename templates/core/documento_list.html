@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block title %}Documentos - Sistema de Gerenciamento Ambulatorial{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+        <i class="fas fa-file-pdf text-primary me-2"></i>
+        Documentos
+    </h1>
+    <a href="{% url 'gerar_documento' %}" class="btn btn-primary">
+        <i class="fas fa-file-medical-alt me-2"></i>Gerar Documento
+    </a>
+</div>
+
+<!-- Filtros e Busca -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label for="search" class="form-label">Pesquisar</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control" id="search" name="search" 
+                           value="{{ request.GET.search|default:'' }}" 
+                           placeholder="Nome ou observações">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label for="paciente" class="form-label">Paciente</label>
+                <select class="form-select" id="paciente" name="paciente">
+                    <option value="">Todos</option>
+                    {% for paciente in pacientes %}
+                    <option value="{{ paciente.id }}" {% if request.GET.paciente == paciente.id|stringformat:"i" %}selected{% endif %}>
+                        {{ paciente.nome }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="template" class="form-label">Template</label>
+                <select class="form-select" id="template" name="template">
+                    <option value="">Todos</option>
+                    {% for template in templates %}
+                    <option value="{{ template.id }}" {% if request.GET.template == template.id|stringformat:"i" %}selected{% endif %}>
+                        {{ template.nome }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Listagem de Documentos -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Paciente</th>
+                        <th>Template</th>
+                        <th>Data de Emissão</th>
+                        <th>Emitido Por</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for documento in documentos %}
+                    <tr>
+                        <td>{{ documento.nome }}</td>
+                        <td>
+                            <a href="{% url 'paciente_detail' documento.paciente.id %}">
+                                {{ documento.paciente.nome }}
+                            </a>
+                        </td>
+                        <td>{{ documento.template.nome }}</td>
+                        <td>{{ documento.data_emissao|date:"d/m/Y" }}</td>
+                        <td>{{ documento.emitido_por.username }}</td>
+                        <td>
+                            <a href="{% url 'documento_detail' documento.id %}" class="btn btn-sm btn-primary btn-action" data-bs-toggle="tooltip" title="Ver detalhes">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'documento_download' documento.id %}" class="btn btn-sm btn-success btn-action" data-bs-toggle="tooltip" title="Download">
+                                <i class="fas fa-download"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4">
+                            <div class="alert alert-info mb-0">
+                                Nenhum documento encontrado
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Paginação -->
+        {% if documentos.has_other_pages %}
+        <nav aria-label="Paginação" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if documentos.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Primeira">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ documentos.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Anterior">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Primeira">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Anterior">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for num in documentos.paginator.page_range %}
+                    {% if documentos.number == num %}
+                    <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                    {% elif num > documentos.number|add:'-3' and num < documentos.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if documentos.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ documentos.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Próxima">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ documentos.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Última">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Próxima">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Última">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Documentos de {{ paciente.nome }} - Sistema de Gerenciamento Ambulatorial{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+        <i class="fas fa-file-medical text-primary me-2"></i>
+        Documentos do Paciente
+    </h1>
+    <div>
+        <a href="{% url 'gerar_documento' %}?paciente_id={{ paciente.id }}" class="btn btn-success me-2">
+            <i class="fas fa-file-medical-alt me-2"></i>Gerar Documento
+        </a>
+        <a href="{% url 'paciente_detail' paciente.id %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+</div>
+
+<!-- Informações do paciente -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h5 class="card-title">{{ paciente.nome }}</h5>
+                <p class="card-text">
+                    <strong>CPF:</strong> {{ paciente.cpf }}<br>
+                    <strong>Data de Nascimento:</strong> {{ paciente.data_nascimento|date:"d/m/Y" }}<br>
+                    <strong>Contato:</strong> {{ paciente.celular }}
+                </p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <p class="card-text">
+                    <strong>Status:</strong> 
+                    {% if paciente.ativo %}
+                    <span class="badge bg-success">Ativo</span>
+                    {% else %}
+                    <span class="badge bg-danger">Inativo</span>
+                    {% endif %}<br>
+                    <strong>Cidade/UF:</strong> {{ paciente.cidade }}/{{ paciente.estado }}<br>
+                    <strong>Total de Documentos:</strong> {{ documentos|length }}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Listagem de Documentos -->
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-file-pdf me-2"></i>Documentos</h5>
+    </div>
+    <div class="card-body">
+        {% if documentos %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Template</th>
+                        <th>Data de Emissão</th>
+                        <th>Emitido Por</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for documento in documentos %}
+                    <tr>
+                        <td>{{ documento.nome }}</td>
+                        <td>{{ documento.template.nome }}</td>
+                        <td>{{ documento.data_emissao|date:"d/m/Y" }}</td>
+                        <td>{{ documento.emitido_por.username }}</td>
+                        <td>
+                            <a href="{% url 'documento_detail' documento.id %}" class="btn btn-sm btn-primary btn-action" data-bs-toggle="tooltip" title="Ver detalhes">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'documento_download' documento.id %}" class="btn btn-sm btn-success btn-action" data-bs-toggle="tooltip" title="Download">
+                                <i class="fas fa-download"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            Este paciente ainda não possui documentos.
+            <a href="{% url 'gerar_documento' %}?paciente_id={{ paciente.id }}" class="alert-link">
+                Clique aqui para gerar um novo documento.
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

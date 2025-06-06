@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}
+{% if form.instance.id %}Editar{% else %}Novo{% endif %} Template - Sistema de Gerenciamento Ambulatorial
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs5.min.css">
+<style>
+    .note-editor {
+        border-radius: 0.375rem;
+    }
+    .note-toolbar {
+        background-color: #f8f9fa;
+    }
+    .variable-list {
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 0.375rem;
+        padding: 1rem;
+    }
+    .variable-list h6 {
+        margin-bottom: 10px;
+        color: #0d6efd;
+    }
+    .variable-item {
+        cursor: pointer;
+        padding: 5px 10px;
+        margin-bottom: 5px;
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        transition: all 0.2s;
+    }
+    .variable-item:hover {
+        background-color: #e9ecef;
+        border-color: #0d6efd;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+        <i class="fas fa-file-medical text-primary me-2"></i>
+        {% if form.instance.id %}Editar{% else %}Novo{% endif %} Template de Documento
+    </h1>
+    <a href="{% url 'template_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Voltar para lista
+    </a>
+</div>
+
+<div class="card form-card">
+    <div class="card-body">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            
+            <!-- Informações Básicas -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informações Básicas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label for="id_nome" class="form-label">Nome do Template*</label>
+                            <input type="text" name="nome" id="id_nome" class="form-control {% if form.nome.errors %}is-invalid{% endif %}" 
+                                   value="{{ form.nome.value|default:'' }}" required>
+                            {% if form.nome.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.nome.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <label for="id_descricao" class="form-label">Descrição</label>
+                            <textarea name="descricao" id="id_descricao" 
+                                      class="form-control {% if form.descricao.errors %}is-invalid{% endif %}" 
+                                      rows="3">{{ form.descricao.value|default:'' }}</textarea>
+                            {% if form.descricao.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.descricao.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="ativo" id="id_ativo"
+                                       {% if form.ativo.value %}checked{% endif %}>
+                                <label class="form-check-label" for="id_ativo">Template Ativo</label>
+                            </div>
+                            {% if form.ativo.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.ativo.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Conteúdo do Template -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Conteúdo do Template</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-9">
+                            <label for="id_conteudo" class="form-label">Conteúdo*</label>
+                            <textarea name="conteudo" id="id_conteudo" 
+                                      class="form-control {% if form.conteudo.errors %}is-invalid{% endif %}" 
+                                      rows="15">{{ form.conteudo.value|default:'' }}</textarea>
+                            {% if form.conteudo.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.conteudo.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                            <small class="form-text text-muted mt-2">
+                                Utilize o editor para formatar o texto e adicione campos como {% templatetag openvariable %} paciente.nome {% templatetag closevariable %} para substituir por dados do paciente.
+                            </small>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="variable-list">
+                                <h6>Campos Disponíveis</h6>
+                                <p class="small text-muted">Clique em um campo para adicioná-lo ao template.</p>
+                                
+                                <div class="mb-3">
+                                    <h6 class="small fw-bold">Paciente</h6>
+                                    <div class="variable-item" data-value="{% templatetag openvariable %} paciente.nome {% templatetag closevariable %}">Nome Completo</div>
+                                    <div class="variable-item" data-value="{% templatetag openvariable %} paciente.cpf {% templatetag closevariable %}">CPF</div>
+                                    <div class="variable-item" data-value="{% templatetag openvariable %} paciente.data_nascimento {% templatetag closevariable %}">Data de Nascimento</div>
+                                    <div class="variable-item" data-value="{% templatetag openvariable %} paciente.sexo {% templatetag closevariable %}">Sexo</div>
+                                    <div class="variable-item" data-value="{% templatetag openvariable %} paciente.celular {% templatetag closevariable %}">Celular</div>
+                                    <div class="variable-item" data-value="{% templatetag openvariable %} paciente.telefone {% templatetag closevariable %}">Telefone</div>
+                                    <div class="variable-item" data-value="{% templatetag openvariable %} paciente.email {% templatetag closevariable %}">Email</div>
+                                    <div class="variable-item" data-value="{% templatetag openvariable %} paciente.endereco {% templatetag closevariable %}">Endereço</div>
+                                    <div class="variable-item" data-value="{% templatetag openvariable %} paciente.bairro {% templatetag closevariable %}">Bairro</div>
+                                    <div class="variable-item" data-value="{% templatetag openvariable %} paciente.cidade {% templatetag closevariable %}">Cidade</div>
+                                    <div class="variable-item" data-value="{% templatetag openvariable %} paciente.estado {% templatetag closevariable %}">Estado</div>
+                                    <div class="variable-item" data-value="{% templatetag openvariable %} paciente.cep {% templatetag closevariable %}">CEP</div>
+                                </div>
+                                
+                                <div>
+                                    <h6 class="small fw-bold">Data/Hora</h6>
+                                    <div class="variable-item" data-value="{% now 'd/m/Y' %}">Data Atual</div>
+                                    <div class="variable-item" data-value="{% now 'H:i' %}">Hora Atual</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{% url 'template_list' %}" class="btn btn-secondary me-md-2">Cancelar</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Salvar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs5.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializa o editor de rich text para o conteúdo
+        $('#id_conteudo').summernote({
+            height: 400,
+            toolbar: [
+                ['style', ['style']],
+                ['font', ['bold', 'italic', 'underline', 'clear']],
+                ['fontname', ['fontname']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['height', ['height']],
+                ['table', ['table']],
+                ['insert', ['link', 'hr']],
+                ['view', ['fullscreen', 'codeview', 'help']],
+            ],
+            callbacks: {
+                onPaste: function(e) {
+                    // Remove estilos indesejados quando cola
+                    var bufferText = ((e.originalEvent || e).clipboardData || window.clipboardData).getData('Text');
+                    e.preventDefault();
+                    document.execCommand('insertText', false, bufferText);
+                }
+            }
+        });
+        
+        // Adiciona variáveis ao clicar nos itens da lista
+        $('.variable-item').on('click', function() {
+            const value = $(this).data('value');
+            const editor = $('#id_conteudo').summernote('code');
+            $('#id_conteudo').summernote('code', editor + ' ' + value);
+        });
+    });
+</script>
+{% endblock %}

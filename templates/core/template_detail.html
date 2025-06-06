@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ template.nome }} - Sistema de Gerenciamento Ambulatorial{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+        <i class="fas fa-file-medical text-primary me-2"></i>
+        Detalhes do Template
+    </h1>
+    <div>
+        <a href="{% url 'template_update' template.id %}" class="btn btn-warning me-2">
+            <i class="fas fa-edit me-2"></i>Editar
+        </a>
+        <a href="{% url 'template_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Informações do template -->
+    <div class="col-lg-8">
+        <!-- Informações Básicas -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informações Básicas</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-md-12">
+                        <h2 class="h4 mb-3">{{ template.nome }}</h2>
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-md-12">
+                        <p class="mb-1 text-muted small">Descrição</p>
+                        <p class="mb-0">{{ template.descricao|default:"Nenhuma descrição disponível" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conteúdo do Template -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Conteúdo do Template</h5>
+            </div>
+            <div class="card-body">
+                <div class="template-content">
+                    {{ template.conteudo|safe }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Códigos de Campo -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-code me-2"></i>Códigos de Campo Utilizados</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6 class="alert-heading">Como usar os códigos de campo</h6>
+                    <p class="mb-0">Os códigos de campo são substituídos automaticamente pelos dados do paciente durante a geração do documento.</p>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Descrição</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if "{{ paciente.nome }}" in template.conteudo %}
+                            <tr>
+                                <td><code>{% templatetag openvariable %} paciente.nome {% templatetag closevariable %}</code></td>
+                                <td>Nome completo do paciente</td>
+                            </tr>
+                            {% endif %}
+                            {% if "{{ paciente.cpf }}" in template.conteudo %}
+                            <tr>
+                                <td><code>{% templatetag openvariable %} paciente.cpf {% templatetag closevariable %}</code></td>
+                                <td>CPF do paciente</td>
+                            </tr>
+                            {% endif %}
+                            {% if "{{ paciente.data_nascimento }}" in template.conteudo %}
+                            <tr>
+                                <td><code>{% templatetag openvariable %} paciente.data_nascimento {% templatetag closevariable %}</code></td>
+                                <td>Data de nascimento do paciente</td>
+                            </tr>
+                            {% endif %}
+                            {% if "{{ paciente.sexo }}" in template.conteudo %}
+                            <tr>
+                                <td><code>{% templatetag openvariable %} paciente.sexo {% templatetag closevariable %}</code></td>
+                                <td>Sexo do paciente</td>
+                            </tr>
+                            {% endif %}
+                            {% if "{{ paciente.celular }}" in template.conteudo %}
+                            <tr>
+                                <td><code>{% templatetag openvariable %} paciente.celular {% templatetag closevariable %}</code></td>
+                                <td>Número de celular do paciente</td>
+                            </tr>
+                            {% endif %}
+                            {% if "{{ paciente.endereco }}" in template.conteudo %}
+                            <tr>
+                                <td><code>{% templatetag openvariable %} paciente.endereco {% templatetag closevariable %}</code></td>
+                                <td>Endereço do paciente</td>
+                            </tr>
+                            {% endif %}
+                            {% if "{{ paciente.cidade }}" in template.conteudo %}
+                            <tr>
+                                <td><code>{% templatetag openvariable %} paciente.cidade {% templatetag closevariable %}</code></td>
+                                <td>Cidade do paciente</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar com informações adicionais -->
+    <div class="col-lg-4">
+        <!-- Status do template -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>Status do template:</span>
+                    {% if template.ativo %}
+                    <span class="badge bg-success">Ativo</span>
+                    {% else %}
+                    <span class="badge bg-danger">Inativo</span>
+                    {% endif %}
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>Criado por:</span>
+                    <span>{{ template.criado_por.username }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <span>Criado em:</span>
+                    <span>{{ template.created_at|date:"d/m/Y" }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <span>Última atualização:</span>
+                    <span>{{ template.updated_at|date:"d/m/Y" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ações Rápidas -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Ações Rápidas</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'gerar_documento' %}?template_id={{ template.id }}" class="btn btn-success">
+                        <i class="fas fa-file-pdf me-2"></i>Gerar Documento
+                    </a>
+                    {% if can_edit %}
+                    <a href="{% url 'template_update' template.id %}" class="btn btn-warning">
+                        <i class="fas fa-edit me-2"></i>Editar Template
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Estatísticas -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Estatísticas</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>Total de documentos gerados:</span>
+                    <span class="badge bg-primary">{{ total_documentos }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>Último documento:</span>
+                    <span>
+                        {% if ultimo_documento %}
+                            {{ ultimo_documento.data_emissao|date:"d/m/Y" }}
+                        {% else %}
+                            Nenhum
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

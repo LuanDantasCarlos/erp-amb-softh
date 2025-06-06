@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+
+{% block title %}
+{% if form.instance.id %}Editar{% else %}Novo{% endif %} Paciente - Sistema de Gerenciamento Ambulatorial
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+        <i class="fas fa-user-plus text-primary me-2"></i>
+        {% if form.instance.id %}Editar{% else %}Novo{% endif %} Paciente
+    </h1>
+    <a href="{% url 'paciente_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Voltar para lista
+    </a>
+</div>
+
+<div class="card form-card">
+    <div class="card-body">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            
+            <!-- Informações Pessoais -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-user me-2"></i>Informações Pessoais</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label for="id_nome" class="form-label">Nome Completo*</label>
+                            <input type="text" name="nome" id="id_nome" class="form-control {% if form.nome.errors %}is-invalid{% endif %}" 
+                                   value="{{ form.nome.value|default:'' }}" required>
+                            {% if form.nome.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.nome.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="id_data_nascimento" class="form-label">Data de Nascimento*</label>
+                            <input type="date" name="data_nascimento" id="id_data_nascimento" 
+                                   class="form-control {% if form.data_nascimento.errors %}is-invalid{% endif %}" 
+                                   value="{{ form.data_nascimento.value|date:'Y-m-d'|default:'' }}" required>
+                            {% if form.data_nascimento.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.data_nascimento.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="id_cpf" class="form-label">CPF*</label>
+                            <input type="text" name="cpf" id="id_cpf" 
+                                   class="form-control mask-cpf {% if form.cpf.errors %}is-invalid{% endif %}" 
+                                   placeholder="000.000.000-00" value="{{ form.cpf.value|default:'' }}" required>
+                            {% if form.cpf.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.cpf.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="id_rg" class="form-label">RG</label>
+                            <input type="text" name="rg" id="id_rg" 
+                                   class="form-control {% if form.rg.errors %}is-invalid{% endif %}" 
+                                   value="{{ form.rg.value|default:'' }}">
+                            {% if form.rg.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.rg.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="id_sexo" class="form-label">Sexo*</label>
+                            <select name="sexo" id="id_sexo" 
+                                    class="form-select {% if form.sexo.errors %}is-invalid{% endif %}" required>
+                                <option value="" {% if not form.sexo.value %}selected{% endif %}>Selecione</option>
+                                <option value="M" {% if form.sexo.value == 'M' %}selected{% endif %}>Masculino</option>
+                                <option value="F" {% if form.sexo.value == 'F' %}selected{% endif %}>Feminino</option>
+                                <option value="O" {% if form.sexo.value == 'O' %}selected{% endif %}>Outro</option>
+                            </select>
+                            {% if form.sexo.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.sexo.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="id_telefone" class="form-label">Telefone</label>
+                            <input type="text" name="telefone" id="id_telefone" 
+                                   class="form-control mask-telefone {% if form.telefone.errors %}is-invalid{% endif %}" 
+                                   placeholder="(00) 0000-0000" value="{{ form.telefone.value|default:'' }}">
+                            {% if form.telefone.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.telefone.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="id_celular" class="form-label">Celular*</label>
+                            <input type="text" name="celular" id="id_celular" 
+                                   class="form-control mask-celular {% if form.celular.errors %}is-invalid{% endif %}" 
+                                   placeholder="(00) 00000-0000" value="{{ form.celular.value|default:'' }}" required>
+                            {% if form.celular.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.celular.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <label for="id_email" class="form-label">Email</label>
+                            <input type="email" name="email" id="id_email" 
+                                   class="form-control {% if form.email.errors %}is-invalid{% endif %}" 
+                                   value="{{ form.email.value|default:'' }}">
+                            {% if form.email.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.email.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Endereço -->
+            <!-- <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Endereço</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="id_cep" class="form-label">CEP</label>
+                            <input type="text" name="cep" id="id_cep" 
+                                   class="form-control mask-cep {% if form.cep.errors %}is-invalid{% endif %}" 
+                                   placeholder="00000-000" value="{{ form.cep.value|default:'' }}">
+                            {% if form.cep.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.cep.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-8">
+                            <label for="id_endereco" class="form-label">Endereço</label>
+                            <input type="text" name="endereco" id="id_endereco" 
+                                   class="form-control {% if form.endereco.errors %}is-invalid{% endif %}" 
+                                   value="{{ form.endereco.value|default:'' }}">
+                            {% if form.endereco.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.endereco.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="id_bairro" class="form-label">Bairro</label>
+                            <input type="text" name="bairro" id="id_bairro" 
+                                   class="form-control {% if form.bairro.errors %}is-invalid{% endif %}" 
+                                   value="{{ form.bairro.value|default:'' }}">
+                            {% if form.bairro.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.bairro.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="id_cidade" class="form-label">Cidade*</label>
+                            <input type="text" name="cidade" id="id_cidade" 
+                                   class="form-control {% if form.cidade.errors %}is-invalid{% endif %}" 
+                                   value="{{ form.cidade.value|default:'' }}" required>
+                            {% if form.cidade.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.cidade.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="id_estado" class="form-label">Estado*</label>
+                            <select name="estado" id="id_estado" 
+                                    class="form-select {% if form.estado.errors %}is-invalid{% endif %}" required>
+                                <option value="" {% if not form.estado.value %}selected{% endif %}>Selecione</option>
+                                <option value="AC" {% if form.estado.value == 'AC' %}selected{% endif %}>Acre</option>
+                                <option value="AL" {% if form.estado.value == 'AL' %}selected{% endif %}>Alagoas</option>
+                                <option value="AP" {% if form.estado.value == 'AP' %}selected{% endif %}>Amapá</option>
+                                <option value="AM" {% if form.estado.value == 'AM' %}selected{% endif %}>Amazonas</option>
+                                <option value="BA" {% if form.estado.value == 'BA' %}selected{% endif %}>Bahia</option>
+                                <option value="CE" {% if form.estado.value == 'CE' %}selected{% endif %}>Ceará</option>
+                                <option value="DF" {% if form.estado.value == 'DF' %}selected{% endif %}>Distrito Federal</option>
+                                <option value="ES" {% if form.estado.value == 'ES' %}selected{% endif %}>Espírito Santo</option>
+                                <option value="GO" {% if form.estado.value == 'GO' %}selected{% endif %}>Goiás</option>
+                                <option value="MA" {% if form.estado.value == 'MA' %}selected{% endif %}>Maranhão</option>
+                                <option value="MT" {% if form.estado.value == 'MT' %}selected{% endif %}>Mato Grosso</option>
+                                <option value="MS" {% if form.estado.value == 'MS' %}selected{% endif %}>Mato Grosso do Sul</option>
+                                <option value="MG" {% if form.estado.value == 'MG' %}selected{% endif %}>Minas Gerais</option>
+                                <option value="PA" {% if form.estado.value == 'PA' %}selected{% endif %}>Pará</option>
+                                <option value="PB" {% if form.estado.value == 'PB' %}selected{% endif %}>Paraíba</option>
+                                <option value="PR" {% if form.estado.value == 'PR' %}selected{% endif %}>Paraná</option>
+                                <option value="PE" {% if form.estado.value == 'PE' %}selected{% endif %}>Pernambuco</option>
+                                <option value="PI" {% if form.estado.value == 'PI' %}selected{% endif %}>Piauí</option>
+                                <option value="RJ" {% if form.estado.value == 'RJ' %}selected{% endif %}>Rio de Janeiro</option>
+                                <option value="RN" {% if form.estado.value == 'RN' %}selected{% endif %}>Rio Grande do Norte</option>
+                                <option value="RS" {% if form.estado.value == 'RS' %}selected{% endif %}>Rio Grande do Sul</option>
+                                <option value="RO" {% if form.estado.value == 'RO' %}selected{% endif %}>Rondônia</option>
+                                <option value="RR" {% if form.estado.value == 'RR' %}selected{% endif %}>Roraima</option>
+                                <option value="SC" {% if form.estado.value == 'SC' %}selected{% endif %}>Santa Catarina</option>
+                                <option value="SP" {% if form.estado.value == 'SP' %}selected{% endif %}>São Paulo</option>
+                                <option value="SE" {% if form.estado.value == 'SE' %}selected{% endif %}>Sergipe</option>
+                                <option value="TO" {% if form.estado.value == 'TO' %}selected{% endif %}>Tocantins</option>
+                            </select>
+                            {% if form.estado.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.estado.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div> -->
+            
+            <!-- Observações e Status -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informações Adicionais</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label for="id_observacoes" class="form-label">Observações</label>
+                            <textarea name="observacoes" id="id_observacoes" 
+                                      class="form-control {% if form.observacoes.errors %}is-invalid{% endif %}" 
+                                      rows="4">{{ form.observacoes.value|default:'' }}</textarea>
+                            {% if form.observacoes.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.observacoes.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="ativo" id="id_ativo"
+                                       {% if form.ativo.value %}checked{% endif %}>
+                                <label class="form-check-label" for="id_ativo">Paciente Ativo</label>
+                            </div>
+                            {% if form.ativo.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.ativo.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{% url 'paciente_list' %}" class="btn btn-secondary me-md-2">Cancelar</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Salvar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Consulta CEP
+        const cepInput = document.getElementById('id_cep');
+        if (cepInput) {
+            cepInput.addEventListener('blur', function() {
+                const cep = this.value.replace(/\D/g, '');
+                if (cep.length === 8) {
+                    fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (!data.erro) {
+                                document.getElementById('id_endereco').value = data.logradouro;
+                                document.getElementById('id_bairro').value = data.bairro;
+                                document.getElementById('id_cidade').value = data.localidade;
+                                document.getElementById('id_estado').value = data.uf;
+                            }
+                        })
+                        .catch(error => console.error('Erro ao consultar CEP:', error));
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

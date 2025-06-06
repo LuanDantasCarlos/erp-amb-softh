@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ documento.nome }} - Sistema de Gerenciamento Ambulatorial{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+        <i class="fas fa-file-pdf text-primary me-2"></i>
+        Detalhes do Documento
+    </h1>
+    <div>
+        <a href="{% url 'documento_download' documento.id %}" class="btn btn-success me-2">
+            <i class="fas fa-download me-2"></i>Download
+        </a>
+        <a href="{% url 'documento_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Informações do documento -->
+    <div class="col-lg-8">
+        <!-- Informações Básicas -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informações do Documento</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-md-12">
+                        <h2 class="h4 mb-3">{{ documento.nome }}</h2>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p class="mb-1 text-muted small">Paciente</p>
+                        <p class="mb-0 fw-bold">
+                            <a href="{% url 'paciente_detail' documento.paciente.id %}">
+                                {{ documento.paciente.nome }}
+                            </a>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1 text-muted small">Template</p>
+                        <p class="mb-0 fw-bold">
+                            <a href="{% url 'template_detail' documento.template.id %}">
+                                {{ documento.template.nome }}
+                            </a>
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <p class="mb-1 text-muted small">Data de Emissão</p>
+                        <p class="mb-0 fw-bold">{{ documento.data_emissao|date:"d/m/Y" }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="mb-1 text-muted small">Emitido por</p>
+                        <p class="mb-0 fw-bold">{{ documento.emitido_por.username }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="mb-1 text-muted small">Data de Criação</p>
+                        <p class="mb-0 fw-bold">{{ documento.created_at|date:"d/m/Y H:i" }}</p>
+                    </div>
+                </div>
+                
+                {% if documento.observacoes %}
+                <div class="row">
+                    <div class="col-md-12">
+                        <p class="mb-1 text-muted small">Observações</p>
+                        <p class="mb-0">{{ documento.observacoes|linebreaks }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Visualização do Documento -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Visualização do Documento</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Esta é apenas uma prévia do documento. Para visualizar o documento completo em PDF, clique no botão de download.
+                </div>
+                
+                <div class="embed-responsive">
+                    {% if is_pdf_viewable %}
+                    <iframe src="{{ documento.arquivo.url }}" class="w-100" style="height: 500px;"></iframe>
+                    {% else %}
+                    <div class="text-center p-5 bg-light border rounded">
+                        <i class="fas fa-file-pdf fa-3x text-danger mb-3"></i>
+                        <h5>Visualização não disponível</h5>
+                        <p>O documento só pode ser visualizado fazendo o download.</p>
+                        <a href="{% url 'documento_download' documento.id %}" class="btn btn-success">
+                            <i class="fas fa-download me-2"></i>Download
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar com informações adicionais -->
+    <div class="col-lg-4">
+        <!-- Informações do Paciente -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-user me-2"></i>Informações do Paciente</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h5 class="mb-2">{{ documento.paciente.nome }}</h5>
+                    <p class="mb-1">
+                        <strong>CPF:</strong> {{ documento.paciente.cpf }}
+                    </p>
+                    <p class="mb-1">
+                        <strong>Data de Nascimento:</strong> {{ documento.paciente.data_nascimento|date:"d/m/Y" }}
+                    </p>
+                    <p class="mb-0">
+                        <strong>Contato:</strong> {{ documento.paciente.celular }}
+                        {% if documento.paciente.email %}
+                        <br><small class="text-muted">{{ documento.paciente.email }}</small>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="d-grid">
+                    <a href="{% url 'paciente_detail' documento.paciente.id %}" class="btn btn-outline-primary">
+                        <i class="fas fa-user me-2"></i>Ver Paciente
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ações Rápidas -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Ações Rápidas</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'documento_download' documento.id %}" class="btn btn-success">
+                        <i class="fas fa-download me-2"></i>Download do Documento
+                    </a>
+                    <a href="{% url 'paciente_documentos' documento.paciente.id %}" class="btn btn-info">
+                        <i class="fas fa-file-medical me-2"></i>Documentos do Paciente
+                    </a>
+                    <a href="{% url 'gerar_documento' %}?paciente_id={{ documento.paciente.id }}" class="btn btn-primary">
+                        <i class="fas fa-file-pdf me-2"></i>Gerar Novo Documento
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metadados do Arquivo -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-file-code me-2"></i>Metadados do Arquivo</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>Tipo de arquivo:</span>
+                    <span class="badge bg-secondary">PDF</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>Caminho do arquivo:</span>
+                    <span class="small text-truncate text-muted" title="{{ documento.arquivo.name }}">
+                        {{ documento.arquivo.name }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
