@@ -2,70 +2,67 @@
 Utility functions for the core app
 """
 import os
-import uuid
+import io
 from django.conf import settings
-from django.template import Template, Context
+from PyPDF2 import PdfReader, PdfWriter
+from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import SimpleDocTemplate, Paragraph
-from .models import Paciente, TemplateDocumento
+from .models import Paciente, TemplateDocumento, CampoTemplateDocumento
 
-
-def gerar_documento_pdf(paciente_id, template_id, nome_documento):
+def gerar_documento_pdf(paciente, template, campos_valores):
     """
-    Generate a PDF document from a template and patient data
-    
+    Generate a PDF document from a template and filled fields.
+
     Args:
-        paciente_id (int): Patient ID
-        template_id (int): Template ID
-        nome_documento (str): Document name
-        
+        paciente (Paciente): Patient object
+        template (TemplateDocumento): Template object
+        campos_valores (dict): Dictionary with field IDs as keys and their values
+
     Returns:
-        tuple: (success, result)
-            - If success is True, result is the path to the generated PDF file
-            - If success is False, result is the error message
+        io.BytesIO: Buffer containing the generated PDF, or None if an error occurs
     """
     try:
-        # Get patient and template
-        paciente = Paciente.objects.get(id=paciente_id)
-        template_doc = TemplateDocumento.objects.get(id=template_id)
-        
-        # Render template with patient data
-        template = Template(template_doc.conteudo)
-        context = Context({
-            'paciente': paciente
-        })
-        content = template.render(context)
-        
-        # Create document storage directory if it doesn't exist
-        os.makedirs(settings.DOCUMENT_STORAGE_PATH, exist_ok=True)
-        paciente_dir = os.path.join(settings.DOCUMENT_STORAGE_PATH, str(paciente.id))
-        os.makedirs(paciente_dir, exist_ok=True)
-        
-        # Generate a unique filename
-        filename = f"{nome_documento.replace(' ', '_')}_{uuid.uuid4().hex[:8]}.pdf"
-        file_path = os.path.join(paciente_dir, filename)
-        
-        # Create PDF with ReportLab
-        styles = getSampleStyleSheet()
-        doc = SimpleDocTemplate(file_path, pagesize=letter)
-        
-        # Split the content by lines for easier formatting
-        paragraphs = []
-        for line in content.split('\n'):
-            if line.strip():  # Avoid empty lines
-                para = Paragraph(line, styles['Normal'])
-                paragraphs.append(para)
-        
-        # Build the PDF document
-        doc.build(paragraphs)
-        
-        # Return the relative path to be stored in the database
-        return True, f"documentos/{paciente.id}/{filename}"
-        
-    except Paciente.DoesNotExist:
-        return False, "Paciente não encontrado."
-    except TemplateDocumento.DoesNotExist:
-        return False, "Template não encontrado."
+        # Verificar se o template tem um arquivo PDF
+        if not template.arquivo_template or not os.path.exists(template.arquivo_template.path):
+            return None
+
+        template_path = template.arquivo_template.path
+        packet = io.BytesIO()
+        can = canvas.Canvas(packet, pagesize=letter)
+
+        for campo in template.campos.all():
+            valor = campos_valores.get(str(campo.id), '')
+
+            if not valor and campo.atributo_paciente:
+                atributo = campo.atributo_paciente
+                valor = getattr(paciente, atributo, '')
+
+            pos = campo.posicao or {}
+            x = pos.get('x', 0)
+            y = pos.get('y', 0)
+            font_size = pos.get('font_size', 12)
+            font_name = pos.get('font_name', 'Helvetica')
+
+            can.setFont(font_name, font_size)
+            can.drawString(x, y, str(valor or ''))
+
+        can.save()
+        packet.seek(0)
+
+        novo_pdf = PdfReader(packet)
+        original_pdf = PdfReader(open(template_path, 'rb'))
+        output = PdfWriter()
+
+        page = original_pdf.pages[0]
+        page.merge_page(novo_pdf.pages[0])
+        output.add_page(page)
+
+        final_buffer = io.BytesIO()
+        output.write(final_buffer)
+        final_buffer.seek(0)
+
+        return final_buffer
+
     except Exception as e:
-        return False, f"Erro ao gerar documento: {str(e)}"
+        print(f"Erro ao gerar documento: {str(e)}")
+        return None

@@ -1,122 +1,111 @@
-"""
-Serializers for the core app
-"""
 from rest_framework import serializers
-from django.contrib.auth.models import User
-from .models import Paciente, TemplateDocumento, Documento
-
-
-class UserSerializer(serializers.ModelSerializer):
-    """Serializer for User model"""
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'first_name', 'last_name', 'email']
-        read_only_fields = ['id']
+import os
+import shutil
+import uuid
+from django.core.files import File
+from .models import Paciente, TemplateDocumento, Documento, CampoPreenchidoDocumento, CampoTemplateDocumento
 
 
 class PacienteSerializer(serializers.ModelSerializer):
-    """Serializer for Paciente model"""
     class Meta:
         model = Paciente
         fields = '__all__'
-        read_only_fields = ['id', 'created_at', 'updated_at']
-    
-    def validate_cpf(self, value):
-        """
-        Validate CPF format
-        """
-        # Remove all non-digit characters
-        cpf = ''.join(filter(str.isdigit, value))
-        
-        # Check if CPF has 11 digits
-        if len(cpf) != 11:
-            raise serializers.ValidationError("CPF deve conter 11 dígitos.")
-        
-        # Check if CPF is valid
-        if cpf == cpf[0] * 11:
-            raise serializers.ValidationError("CPF inválido.")
-        
-        # Verify CPF validation algorithm
-        soma = 0
-        for i in range(9):
-            soma += int(cpf[i]) * (10 - i)
-        resto = soma % 11
-        if resto < 2:
-            digito1 = 0
-        else:
-            digito1 = 11 - resto
-        
-        if int(cpf[9]) != digito1:
-            raise serializers.ValidationError("CPF inválido.")
-        
-        soma = 0
-        for i in range(10):
-            soma += int(cpf[i]) * (11 - i)
-        resto = soma % 11
-        if resto < 2:
-            digito2 = 0
-        else:
-            digito2 = 11 - resto
-        
-        if int(cpf[10]) != digito2:
-            raise serializers.ValidationError("CPF inválido.")
-        
-        # Format CPF
-        return f"{cpf[:3]}.{cpf[3:6]}.{cpf[6:9]}-{cpf[9:]}"
 
 
 class TemplateDocumentoSerializer(serializers.ModelSerializer):
-    """Serializer for TemplateDocumento model"""
-    criado_por_info = UserSerializer(source='criado_por', read_only=True)
-    
+    arquivo_template = serializers.CharField(required=False, allow_null=True)
+
     class Meta:
         model = TemplateDocumento
         fields = '__all__'
-        read_only_fields = ['id', 'created_at', 'updated_at']
-    
-    def validate_conteudo(self, value):
-        """
-        Validate that the content has valid markers
-        """
-        # Basic validation - check if there are any template markers
-        if '{{' not in value or '}}' not in value:
-            raise serializers.ValidationError(
-                "O conteúdo deve conter pelo menos um marcador (exemplo: {{ paciente.nome }})."
-            )
-        return value
+        read_only_fields = ['criado_por', 'created_at', 'updated_at']
+
+    def create(self, validated_data):
+        arquivo_path = validated_data.pop('arquivo_template', None)
+        validated_data['criado_por'] = self.context['request'].user
+        instance = super().create(validated_data)
+        if arquivo_path and os.path.exists(arquivo_path):
+            file_name = f"{uuid.uuid4()}.pdf"
+            dest_path = os.path.join('templates', str(instance.criado_por.id), file_name)
+            os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+            shutil.copy(arquivo_path, dest_path)
+            with open(dest_path, 'rb') as f:
+                instance.arquivo_template.save(file_name, File(f))
+            instance.save()
+        return instance
 
 
 class DocumentoSerializer(serializers.ModelSerializer):
-    """Serializer for Documento model"""
-    paciente_info = PacienteSerializer(source='paciente', read_only=True)
-    template_info = TemplateDocumentoSerializer(source='template', read_only=True)
-    emitido_por_info = UserSerializer(source='emitido_por', read_only=True)
-    
     class Meta:
         model = Documento
         fields = '__all__'
-        read_only_fields = ['id', 'created_at', 'updated_at', 'arquivo']
+        read_only_fields = ['emitido_por', 'data_emissao', 'created_at', 'updated_at']
+
+    def create(self, validated_data):
+        validated_data['emitido_por'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+class CampoTemplateDocumentoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CampoTemplateDocumento
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at']
+
+
+class CampoPreenchidoDocumentoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CampoPreenchidoDocumento
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at']
 
 
 class GerarDocumentoSerializer(serializers.Serializer):
-    """Serializer for document generation endpoint"""
     paciente_id = serializers.IntegerField()
     template_id = serializers.IntegerField()
     nome_documento = serializers.CharField(max_length=255)
     observacoes = serializers.CharField(required=False, allow_blank=True)
-    
+    campos = serializers.DictField(
+        child=serializers.CharField(allow_blank=True),
+        required=True,
+        help_text="Dicionário com os valores para os campos do template (campo_id: valor)"
+    )
+
     def validate_paciente_id(self, value):
-        """Validate that the patient exists"""
-        try:
-            Paciente.objects.get(id=value)
-        except Paciente.DoesNotExist:
+        if not Paciente.objects.filter(id=value).exists():
             raise serializers.ValidationError("Paciente não encontrado.")
         return value
-    
+
     def validate_template_id(self, value):
-        """Validate that the template exists"""
-        try:
-            TemplateDocumento.objects.get(id=value)
-        except TemplateDocumento.DoesNotExist:
+        if not TemplateDocumento.objects.filter(id=value).exists():
             raise serializers.ValidationError("Template não encontrado.")
+        return value
+
+    def validate_campos(self, value):
+        template_id = self.initial_data.get('template_id')
+        if not template_id:
+            return value
+        try:
+            template = TemplateDocumento.objects.get(id=template_id)
+            for campo in template.campos.all():
+                if campo.obrigatorio and str(campo.id) not in value:
+                    raise serializers.ValidationError(f"O campo obrigatório '{campo.nome_campo}' (ID: {campo.id}) não foi preenchido.")
+                if str(campo.id) in value:
+                    valor = value[str(campo.id)]
+                    if campo.tipo_campo == 'number' and valor:
+                        try:
+                            float(valor)
+                        except ValueError:
+                            raise serializers.ValidationError(f"O campo '{campo.nome_campo}' (ID: {campo.id}) deve ser um número.")
+                    elif campo.tipo_campo == 'date' and valor:
+                        try:
+                            from datetime import datetime
+                            datetime.strptime(valor, '%Y-%m-%d')
+                        except ValueError:
+                            raise serializers.ValidationError(f"O campo '{campo.nome_campo}' (ID: {campo.id}) deve ser uma data no formato AAAA-MM-DD.")
+                    elif campo.tipo_campo == 'boolean' and valor:
+                        if valor not in ['True', 'False']:
+                            raise serializers.ValidationError(f"O campo '{campo.nome_campo}' (ID: {campo.id}) deve ser 'True' ou 'False'.")
+        except TemplateDocumento.DoesNotExist:
+            pass
         return value

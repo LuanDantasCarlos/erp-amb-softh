@@ -87,6 +87,9 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Campos do Documento Dinâmicos (injetados pelo JS) -->
+            <div id="campos-documento-container"></div>
             
             <!-- Visualização prévia (se aplicável) -->
             {% if selected_template and selected_paciente %}
@@ -127,24 +130,145 @@
 
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Auto-geração do nome do documento baseado no template
-        const templateSelect = document.getElementById('id_template_id');
-        const nomeDocumentoInput = document.getElementById('id_nome_documento');
-        
-        if (templateSelect && nomeDocumentoInput) {
-            templateSelect.addEventListener('change', function() {
-                const templateId = this.value;
-                if (templateId) {
-                    // Busca o nome do template selecionado
-                    const selectedOption = this.options[this.selectedIndex];
-                    const templateName = selectedOption.text.trim();
-                    
-                    // Gera um nome sugerido baseado no template
-                    nomeDocumentoInput.value = templateName + ' - ' + new Date().toLocaleDateString('pt-BR');
-                }
-            });
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSelect = document.getElementById('id_template_id');
+    const pacienteSelect = document.getElementById('id_paciente_id');
+    const nomeDocumentoInput = document.getElementById('id_nome_documento');
+    const camposContainer = document.getElementById('campos-documento-container');
+
+    let dadosPaciente = {};  // Dados preenchidos do paciente
+
+    function renderCampos(campos) {
+        if (!campos.length) {
+            camposContainer.innerHTML = '';
+            return;
         }
-    });
+
+        let html = `
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Campos do Documento</h5>
+                </div>
+                <div class="card-body">
+        `;
+
+        campos.forEach(campo => {
+            const obrigatorio = campo.obrigatorio ? 'required' : '';
+            const label = `<label for="campo_${campo.id}" class="form-label">${campo.nome}${campo.obrigatorio ? '*' : ''}</label>`;
+            const nameAttr = `name="${campo.id}"`;
+            const valueFromPaciente = campo.atributo_paciente && dadosPaciente[campo.atributo_paciente] !== undefined
+                ? dadosPaciente[campo.atributo_paciente]
+                : '';
+
+            let input = '';
+            switch (campo.tipo) {
+                case 'texto':
+                    input = `<input type="text" id="campo_${campo.id}" ${nameAttr} class="form-control" ${obrigatorio} value="${valueFromPaciente}">`;
+                    break;
+                case 'textarea':
+                    input = `<textarea id="campo_${campo.id}" ${nameAttr} class="form-control" ${obrigatorio}>${valueFromPaciente}</textarea>`;
+                    break;
+                case 'numero':
+                    input = `<input type="number" id="campo_${campo.id}" ${nameAttr} class="form-control" ${obrigatorio} value="${valueFromPaciente}">`;
+                    break;
+                case 'data':
+                    input = `<input type="date" id="campo_${campo.id}" ${nameAttr} class="form-control" ${obrigatorio} value="${valueFromPaciente}">`;
+                    break;
+                case 'checkbox':
+                    const checked = valueFromPaciente === true || valueFromPaciente === 'True' ? 'checked' : '';
+                    input = `
+                        <div class="form-check">
+                            <input type="checkbox" id="campo_${campo.id}" ${nameAttr} class="form-check-input" value="True" ${checked}>
+                            <label class="form-check-label" for="campo_${campo.id}">${campo.nome}</label>
+                        </div>
+                    `;
+                    break;
+                default:
+                    input = `<input type="text" id="campo_${campo.id}" ${nameAttr} class="form-control" ${obrigatorio} value="${valueFromPaciente}">`;
+            }
+
+            html += `<div class="mb-3">${label}${input}</div>`;
+        });
+
+        html += `</div></div>`;
+        camposContainer.innerHTML = html;
+    }
+
+    function fetchCamposTemplate(templateId) {
+        if (!templateId) {
+            camposContainer.innerHTML = '';
+            return;
+        }
+
+        fetch(`/api/campos_template_json/${templateId}/`, {
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Erro ao buscar campos do template.');
+            return response.json();
+        })
+        .then(campos => {
+            renderCampos(campos);
+        })
+        .catch(error => {
+            camposContainer.innerHTML = `<div class="alert alert-danger">Erro ao carregar campos do template.</div>`;
+            console.error(error);
+        });
+    }
+
+    function fetchDadosPaciente(pacienteId, callback) {
+        if (!pacienteId) {
+            dadosPaciente = {};
+            callback();
+            return;
+        }
+
+        fetch(`/api/paciente_json/${pacienteId}/`, {
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Erro ao buscar dados do paciente.');
+            return response.json();
+        })
+        .then(data => {
+            dadosPaciente = data;
+            callback();
+        })
+        .catch(error => {
+            console.error('Erro ao buscar paciente:', error);
+            dadosPaciente = {};
+            callback();
+        });
+    }
+
+    function atualizarCampos() {
+        const templateId = templateSelect.value;
+        const pacienteId = pacienteSelect.value;
+
+        if (templateId) {
+            fetchDadosPaciente(pacienteId, () => {
+                fetchCamposTemplate(templateId);
+            });
+        } else {
+            camposContainer.innerHTML = '';
+        }
+
+        if (templateId) {
+            const selectedOption = templateSelect.options[templateSelect.selectedIndex];
+            nomeDocumentoInput.value = selectedOption.text;
+        }
+    }
+
+    if (templateSelect && pacienteSelect && nomeDocumentoInput) {
+        templateSelect.addEventListener('change', atualizarCampos);
+        pacienteSelect.addEventListener('change', atualizarCampos);
+
+        if (templateSelect.value) {
+            atualizarCampos();
+        }
+    }
+});
 </script>
+
+
 {% endblock %}

@@ -1,8 +1,11 @@
 """
 Formulários para o sistema de gerenciamento ambulatorial
 """
+from datetime import datetime
 from django import forms
-from .models import Paciente, TemplateDocumento, Documento
+from django.core.exceptions import ValidationError
+from .models import Paciente, TemplateDocumento, Documento, CampoTemplateDocumento
+import json
 
 
 class PacienteForm(forms.ModelForm):
@@ -48,17 +51,16 @@ class PacienteForm(forms.ModelForm):
         return f"{cpf_nums[:3]}.{cpf_nums[3:6]}.{cpf_nums[6:9]}-{cpf_nums[9:]}"
 
 
-
 class TemplateDocumentoForm(forms.ModelForm):
     """Formulário para o modelo TemplateDocumento"""
     
     class Meta:
         model = TemplateDocumento
-        fields = ['nome', 'descricao','caminho_template', 'ativo']
+        fields = ['nome', 'descricao', 'arquivo_template', 'ativo']
         widgets = {
             'descricao': forms.Textarea(attrs={'rows': 3}),
+            'arquivo_template': forms.FileInput(),
         }
-    
 
 
 class GerarDocumentoForm(forms.Form):
@@ -88,6 +90,12 @@ class GerarDocumentoForm(forms.Form):
         required=False
     )
     
+    campos = forms.JSONField(
+        label="Campos do Template",
+        required=False,
+        widget=forms.HiddenInput()
+    )
+    
     def clean_paciente_id(self):
         """Valida se o paciente existe"""
         paciente_id = self.cleaned_data.get('paciente_id')
@@ -105,3 +113,37 @@ class GerarDocumentoForm(forms.Form):
         except TemplateDocumento.DoesNotExist:
             raise forms.ValidationError("Template não encontrado.")
         return template_id
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        template_id = cleaned_data.get('template_id')
+        
+        data = self.data or {}
+        
+        if template_id:
+            try:
+                template = TemplateDocumento.objects.get(id=template_id)
+                for campo in template.campos.all():
+                    campo_id_str = str(campo.id)
+                    valor = data.get(campo_id_str, '')
+                    
+                    if campo.obrigatorio and not valor:
+                        raise ValidationError(f"O campo obrigatório '{campo.nome_campo}' não foi preenchido.")
+                    
+                    if valor:
+                        if campo.tipo_campo == 'number':
+                            try:
+                                float(valor)
+                            except ValueError:
+                                raise ValidationError(f"O campo '{campo.nome_campo}' deve ser um número.")
+                        elif campo.tipo_campo == 'date':
+                            try:
+                                datetime.strptime(valor, '%d/%m/%Y')
+                            except ValueError:
+                                raise ValidationError(f"O campo '{campo.nome_campo}' deve ser uma data no formato AAAA-MM-DD.")
+                        elif campo.tipo_campo == 'boolean':
+                            if valor not in ['True', 'False']:
+                                raise ValidationError(f"O campo '{campo.nome_campo}' deve ser 'Sim' ou 'Não'.")
+            except TemplateDocumento.DoesNotExist:
+                pass
+        return cleaned_data
