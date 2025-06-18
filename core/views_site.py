@@ -11,13 +11,16 @@ from django.http import HttpResponse, FileResponse
 import os
 from django.http import JsonResponse
 from django.forms.models import model_to_dict
+from reportlab.pdfbase import pdfmetrics
+
 
 
 
 from .models import Paciente, TemplateDocumento, Documento
 from .models import Paciente, TemplateDocumento, Documento, CampoTemplateDocumento, CampoPreenchidoDocumento
 from .forms import GerarDocumentoForm,TemplateDocumentoForm, PacienteForm
-from .utils import gerar_documento_pdf
+from core.serializers import GerarDocumentoSerializer
+from .utils import gerar_documento_pdf, calcular_maxchars_textarea
 
 
 @login_required
@@ -366,89 +369,98 @@ def gerar_documento(request):
     if request.GET.get('template_id'):
         initial['template_id'] = request.GET.get('template_id')
 
-    from_url = request.META.get('HTTP_REFERER', None)
+    from_url = request.META.get('HTTP_REFERER')
     selected_paciente = None
     selected_template = None
     campos_template = None
 
     if request.method == 'POST':
-        print("POST data:", request.POST)
-
         form = GerarDocumentoForm(request.POST)
 
         if 'preview' in request.POST:
             if form.is_valid():
-                paciente_id = form.cleaned_data['paciente_id']
-                template_id = form.cleaned_data['template_id']
                 try:
-                    selected_paciente = Paciente.objects.get(id=paciente_id)
-                    selected_template = TemplateDocumento.objects.get(id=template_id)
+                    selected_paciente = Paciente.objects.get(id=form.cleaned_data['paciente_id'])
+                    selected_template = TemplateDocumento.objects.get(id=form.cleaned_data['template_id'])
                     campos_template = CampoTemplateDocumento.objects.filter(template=selected_template)
                     messages.info(request, 'Visualização carregada com sucesso.')
                 except Exception as e:
                     messages.error(request, f'Erro ao carregar visualização: {str(e)}')
             else:
-                messages.error(request, f'Erro no formulário de visualização: {form.errors}')
-
+                messages.error(request, f'Erro no formulário: {form.errors}')
         elif form.is_valid():
             paciente_id = form.cleaned_data['paciente_id']
             template_id = form.cleaned_data['template_id']
             nome_documento = form.cleaned_data['nome_documento']
             observacoes = form.cleaned_data.get('observacoes', '')
 
-            # Novo formato: campos dinâmicos vêm com name="{{campo.id}}"
             campos_valores = {}
             for campo in CampoTemplateDocumento.objects.filter(template_id=template_id):
                 chave = str(campo.id)
-                valor = request.POST.get(chave, '')
-                # Checkbox que não está marcado não vem no POST, garantir False
                 if campo.tipo_campo == 'checkbox':
-                    valor = 'True' if chave in request.POST else 'False'
+                    valor = request.POST.getlist(f'campo_{chave}[]')
+                else:
+                    valor = request.POST.get(f'campo_{chave}', '')
                 campos_valores[chave] = valor
 
-            try:
-                paciente = Paciente.objects.get(id=paciente_id)
-                template = TemplateDocumento.objects.get(id=template_id)
+            serializer = GerarDocumentoSerializer(data={
+                'paciente_id': paciente_id,
+                'template_id': template_id,
+                'nome_documento': nome_documento,
+                'observacoes': observacoes,
+                'campos': campos_valores,
+            })
 
-                documento = Documento.objects.create(
-                    paciente=paciente,
-                    template=template,
-                    nome=nome_documento,
-                    emitido_por=request.user,
-                    observacoes=observacoes
-                )
-                documento.registrar_acao(request.user, "gerado")
-                messages.info(request, 'Documento criado no banco.')
+            if serializer.is_valid():
+                try:
+                    paciente = Paciente.objects.get(id=paciente_id)
+                    template = TemplateDocumento.objects.get(id=template_id)
 
-                for campo in CampoTemplateDocumento.objects.filter(template=template):
-                    valor = campos_valores.get(str(campo.id), '')
-                    CampoPreenchidoDocumento.objects.create(
-                        documento=documento,
-                        campo_template=campo,
-                        valor=valor
+                    documento = Documento.objects.create(
+                        paciente=paciente,
+                        template=template,
+                        nome=nome_documento,
+                        emitido_por=request.user,
+                        observacoes=observacoes
                     )
-                messages.info(request, 'Campos preenchidos salvos.')
+                    documento.registrar_acao(request.user, "gerado")
+                    messages.info(request, 'Documento criado com sucesso.')
 
-                if not template.arquivo_template:
-                    messages.error(request, 'O template selecionado não possui um arquivo PDF associado.')
-                    context = {'form': form}
-                    return render(request, 'core/gerar_documento.html', context)
+                    for campo in CampoTemplateDocumento.objects.filter(template=template):
+                        valor = campos_valores.get(str(campo.id), '')
+                        CampoPreenchidoDocumento.objects.create(
+                            documento=documento,
+                            campo_template=campo,
+                            valor=valor
+                        )
+                    messages.info(request, 'Campos preenchidos salvos.')
 
-                messages.info(request, 'Gerando PDF...')
-                pdf_buffer = gerar_documento_pdf(paciente, template, campos_valores)
-                if pdf_buffer:
-                    messages.success(request, 'PDF gerado com sucesso! Iniciando download...')
-                    return FileResponse(
-                        pdf_buffer,
-                        as_attachment=True,
-                        filename=f"{nome_documento}.pdf",
-                        content_type='application/pdf'
-                    )
-                else:
-                    messages.error(request, 'Erro ao gerar o PDF.')
-                    documento.delete()
-            except Exception as e:
-                messages.error(request, f'Erro ao gerar documento: {str(e)}')
+                    if not template.arquivo_template:
+                        messages.error(request, 'O template selecionado não possui um arquivo PDF associado.')
+                        return render(request, 'core/gerar_documento.html', {
+                            'form': form,
+                            'pacientes': Paciente.objects.filter(ativo=True),
+                            'templates': TemplateDocumento.objects.filter(ativo=True),
+                            'from_url': from_url,
+                        })
+
+                    messages.info(request, 'Gerando PDF...')
+                    pdf_buffer = gerar_documento_pdf(paciente, template, campos_valores)
+                    if pdf_buffer:
+                        messages.success(request, 'PDF gerado com sucesso.')
+                        return FileResponse(
+                            pdf_buffer,
+                            as_attachment=True,
+                            filename=f"{nome_documento}.pdf",
+                            content_type='application/pdf'
+                        )
+                    else:
+                        documento.delete()
+                        messages.error(request, 'Erro ao gerar o PDF.')
+                except Exception as e:
+                    messages.error(request, f'Erro ao gerar o documento: {str(e)}')
+            else:
+                messages.error(request, f'Erro na validação dos campos: {serializer.errors}')
         else:
             messages.error(request, f'Erro no formulário: {form.errors}')
     else:
@@ -469,22 +481,56 @@ def gerar_documento(request):
 
     return render(request, 'core/gerar_documento.html', context)
 
+def calcular_maxlength_textarea(width_pt, height_pt, font_name="Helvetica", font_size=12, line_height_factor=1.2):
+    line_height = font_size * line_height_factor
+    max_lines = int(height_pt // line_height)
+    char_width = pdfmetrics.stringWidth('a', font_name, font_size)
+    chars_per_line = int(width_pt // char_width) if char_width else 0
+    maxlength = max_lines * chars_per_line
+    return maxlength
 
-@login_required    
+@login_required
 def campos_template_json(request, template_id):
-    campos = CampoTemplateDocumento.objects.filter(template_id=template_id).values(
-        'id', 'nome_campo', 'tipo_campo', 'obrigatorio', 'atributo_paciente'
-    )
-    campos_list = [
-        {
-            'id': campo['id'],
-            'nome': campo['nome_campo'],
-            'tipo': campo['tipo_campo'],
-            'obrigatorio': campo['obrigatorio'],
-            'atributo_paciente': campo['atributo_paciente'],
+    campos = CampoTemplateDocumento.objects.filter(template_id=template_id)
+    campos_list = []
+
+    for campo in campos:
+        campo_dict = {
+            'id': campo.id,
+            'nome': campo.nome_campo,
+            'tipo': campo.tipo_campo,
+            'descricao': campo.descricao,
+            'pagina': campo.pagina,
+            'posicao': campo.posicao,
+            'obrigatorio': campo.obrigatorio,
+            'atributo_paciente': campo.atributo_paciente,
         }
-        for campo in campos
-    ]
+
+        # Calcule maxlength apenas se for textarea e se width/height existirem
+        if campo.tipo_campo == 'textarea':
+            pos = campo.posicao if isinstance(campo.posicao, dict) else campo.posicao[0]
+            width = pos.get('width')
+            height = pos.get('height')
+            font_size = pos.get('font_size', 12)
+            font_name = pos.get('font_name', "Helvetica")
+            if width and height:
+                # Use a função realista do utils.py!
+                campo_dict['maxlength'] = calcular_maxchars_textarea(width, height, font_name, font_size)
+
+        if campo.tipo_campo in ['checkbox', 'select'] and campo.opcoes:
+            opcoes = []
+            for idx, opc in enumerate(campo.opcoes):
+                if isinstance(opc, dict):
+                    opc_copy = dict(opc)
+                    if 'id' not in opc_copy:
+                        opc_copy['id'] = str(idx + 1)
+                    opcoes.append(opc_copy)
+                else:
+                    opcoes.append({'id': str(idx+1), 'texto': str(opc)})
+            campo_dict['opcoes'] = opcoes
+
+        campos_list.append(campo_dict)
+
     return JsonResponse(campos_list, safe=False)
 
 @login_required

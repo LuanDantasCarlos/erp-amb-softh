@@ -1,0 +1,366 @@
+{
+  "template": 3,
+  "nome_campo": "Sexo",
+  "tipo_campo": "checkbox",
+  "pagina": 1,
+  "posicao": { "x": 486.67, "y": 123.13, "font_size": 11, "font_name": "Helvetica" },
+  "opcoes": [
+    {
+      "texto": "Masculino",
+      "posicao": { "x": 483.67, "y": 124.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Feminino",
+      "posicao": { "x": 513.67, "y": 124.13, "font_size": 11, "font_name": "Helvetica" }
+    }
+  ],
+  "obrigatorio": true
+}
+
+
+{
+  "template": 3,
+  "nome_campo": "Nome do Paciente",
+  "tipo_campo": "text",
+  "pagina": 1,
+  "posicao": { "x": 109.67, "y": 124.13, "font_size": 11, "font_name": "Helvetica" },
+  "obrigatorio": true,
+  "atributo_paciente": "nome"
+}
+
+  {
+    "template": 3,
+    "nome_campo": "Idade",
+    "tipo_campo": "text",
+    "pagina": 1,
+    "posicao": { "x": 374.67, "y": 124.13, "font_size": 11, "font_name": "Helvetica" },
+    "obrigatorio": true
+  }
+
+
+
+{
+  "template": 3,
+  "nome_campo": "1. Diagnóstico (CID-10)",
+  "tipo_campo": "checkbox",
+  "pagina": 1,
+  "posicao": { "x": 0, "y": 0, "font_size": 11, "font_name": "Helvetica" },  // posição do grupo (não é usada nas opções)
+  "obrigatorio": true,
+  "opcoes": [
+    {
+      "texto": "PIO média antes do início do tratamento acima de 21 mmHg; E",
+      "posicao": { "x": 79.67, "y": 219.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Dano típico ao nervo óptico com perda da rima neurorreniana identificado por biomicroscopia de fundo (escavação igual ou acima de 0,5); OU",
+      "posicao": { "x": 80.67, "y": 235.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Campo visual compatível com o dano ao nervo óptico.",
+      "posicao": { "x": 235.67, "y": 252.13, "font_size": 11, "font_name": "Helvetica" }
+    }
+  ]
+}
+
+
+
+{
+  "template": 3,
+  "nome_campo": "2. Gravidade da doença",
+  "tipo_campo": "checkbox",
+  "pagina": 1,
+  "posicao": { "x": 0, "y": 0, "font_size": 11, "font_name": "Helvetica" },
+  "obrigatorio": true,
+  "opcoes": [
+    {
+      "texto": "Valor de PIO na ausência de medicamento antiglaucomatoso: 21-23 mmHg",
+      "posicao": { "x": 331.67, "y": 288.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Valor de PIO na ausência de medicamento antiglaucomatoso: acima de 26 mmHg",
+      "posicao": { "x": 419.67, "y": 290.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Sem comprometimento dos 10 graus centrais em nenhum dos olhos",
+      "posicao": { "x": 100.67, "y": 322.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Comprometimento em três ou mais quadrantes ou danos nos 10 graus centrais em um dos olhos",
+      "posicao": { "x": 100.67, "y": 341.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Alagamento da escavação do disco óptico acima de 0,8: Sim",
+      "posicao": { "x": 308.67, "y": 357.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Alagamento da escavação do disco óptico acima de 0,8: Não",
+      "posicao": { "x": 353.67, "y": 357.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Cegueira por dano glaucomatoso em um olho: Sim",
+      "posicao": { "x": 268.67, "y": 374.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Cegueira por dano glaucomatoso em um olho: Não",
+      "posicao": { "x": 312.67, "y": 374.13, "font_size": 11, "font_name": "Helvetica" }
+    }
+  ]
+}
+
+
+
+{
+  "template": 3,
+  "nome_campo": "3. Paciente submetido a intervenção cirúrgica relacionado ao glaucoma",
+  "tipo_campo": "checkbox",
+  "pagina": 1,
+  "posicao": { "x": 0, "y": 0, "font_size": 11, "font_name": "Helvetica" },
+  "obrigatorio": true,
+  "opcoes": [
+    {
+      "texto": "Sim",
+      "posicao": { "x": 369.67, "y": 395.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Não",
+      "posicao": { "x": 411.67, "y": 397.00, "font_size": 11, "font_name": "Helvetica" }
+    }
+  ]
+}
+
+
+{
+  "template": 3,
+  "nome_campo": "4. Paciente aguardando realização de aplicação de laser ou intervenção cirúrgica",
+  "tipo_campo": "checkbox",
+  "pagina": 1,
+  "posicao": { "x": 0, "y": 0, "font_size": 11, "font_name": "Helvetica" },
+  "obrigatorio": true,
+  "opcoes": [
+    {
+      "texto": "Sim",
+      "posicao": { "x": 405.67, "y": 414.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Não",
+      "posicao": { "x": 449.67, "y": 416.13, "font_size": 11, "font_name": "Helvetica" }
+    }
+  ]
+}
+
+
+{
+  "template": 3,
+  "nome_campo": "Se sim, favor informar a valor de PIO atual",
+  "tipo_campo": "text",
+  "pagina": 1,
+  "posicao": { "x": 251.67, "y": 430.14, "font_size": 11, "font_name": "Helvetica" },
+  "obrigatorio": false
+}
+
+
+
+{
+  "template": 3,
+  "nome_campo": "Medicamento(s) solicitado(s)",
+  "tipo_campo": "checkbox",
+  "pagina": 1,
+  "posicao": { "x": 0, "y": 0, "font_size": 11, "font_name": "Helvetica" },
+  "obrigatorio": false,
+  "opcoes": [
+    {
+      "texto": "Timolol",
+      "posicao": { "x": 68.67, "y": 467.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Dorzolamida",
+      "posicao": { "x": 125.67, "y": 467.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Brinzolamida",
+      "posicao": { "x": 198.67, "y": 466.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Brimonidina",
+      "posicao": { "x": 270.67, "y": 467.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Latanoprosta",
+      "posicao": { "x": 340.67, "y": 468.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Bimatoprosta",
+      "posicao": { "x": 414.67, "y": 466.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Travoposta",
+      "posicao": { "x": 69.67, "y": 485.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Acetazolamida",
+      "posicao": { "x": 132.67, "y": 484.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Pilocarpina",
+      "posicao": { "x": 222.67, "y": 484.13, "font_size": 11, "font_name": "Helvetica" }
+    }
+  ]
+}
+
+
+
+{
+  "template": 3,
+  "nome_campo": "6. Paciente já fez tratamento medicamentoso para glaucoma?",
+  "tipo_campo": "checkbox",
+  "pagina": 1,
+  "obrigatorio": true,
+  "posicao": [{}],
+  "opcoes": [
+    {
+      "texto": "Sim",
+      "posicao": { "x": 360.67, "y": 501.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Não",
+      "posicao": { "x": 318.67, "y": 500.13, "font_size": 11, "font_name": "Helvetica" }
+    }
+  ]
+}
+
+{
+  "template": 3,
+  "nome_campo": "Falha terapêutica a Monoterapia",
+  "tipo_campo": "checkbox",
+  "pagina": 1,
+  "obrigatorio": false,
+  "posicao": [{}],
+  "opcoes": [
+    {
+      "texto": "Timolol",
+      "posicao": { "x": 151.67, "y": 536.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Dorzolamida ou Brinzolamida ou Brimonidina",
+      "posicao": { "x": 201.67, "y": 536.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Prostaglandinas",
+      "posicao": { "x": 408.67, "y": 536.13, "font_size": 11, "font_name": "Helvetica" }
+    }
+  ]
+}
+
+
+{
+  "template": 3,
+  "nome_campo": "Falha terapêutica a Associação",
+  "tipo_campo": "checkbox",
+  "pagina": 1,
+  "obrigatorio": false,
+  "posicao": [{}],
+  "opcoes": [
+    {
+      "texto": "Timolol",
+      "posicao": { "x": 140.67, "y": 553.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Dorzolamida ou Brinzolamida ou Brimonidina",
+      "posicao": { "x": 193.67, "y": 555.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Prostaglandinas",
+      "posicao": { "x": 401.67, "y": 553.13, "font_size": 11, "font_name": "Helvetica" }
+    }
+  ]
+}
+
+
+{
+  "template": 3,
+  "nome_campo": "7. Paciente apresenta contra-indicação a algum colírio disponível no SUS",
+  "tipo_campo": "checkbox",
+  "pagina": 1,
+  "obrigatorio": true,
+  "posicao": [{}],
+  "opcoes": [
+    {
+      "texto": "Não",
+      "posicao": { "x": 77.67, "y": 588.13, "font_size": 11, "font_name": "Helvetica" }
+    },
+    {
+      "texto": "Sim",
+      "posicao": { "x": 119.67, "y": 587.13, "font_size": 11, "font_name": "Helvetica" }
+    }
+  ]
+}
+
+{
+  "template": 3,
+  "nome_campo": "Informe qual(is)",
+  "tipo_campo": "text",
+  "pagina": 1,
+  "obrigatorio": false,
+  "posicao": [
+    { "x": 233.67, "y": 584.13, "font_size": 11, "font_name": "Helvetica" }
+  ]
+}
+
+
+{
+  "template": 3,
+  "nome_campo": "Observações adicionais relevantes",
+  "tipo_campo": "textarea",
+  "pagina": 1,
+  "obrigatorio": false,
+  "posicao": [
+    { "x": 69.67, "y": 615.13, "font_size": 11, "font_name": "Helvetica" }
+  ]
+}
+
+
+{
+  "template": 3,
+  "nome_campo": "Local",
+  "tipo_campo": "text",
+  "pagina": 1,
+  "obrigatorio": false,
+  "posicao": [
+    { "x": 79.67, "y": 720.13, "font_size": 11, "font_name": "Helvetica" }
+  ]
+}
+
+
+{
+  "template": 3,
+  "nome_campo": "Dia",
+  "tipo_campo": "number",
+  "pagina": 1,
+  "obrigatorio": false,
+  "posicao": [
+    { "x": 171.67, "y": 720.13, "font_size": 11, "font_name": "Helvetica" }
+  ]
+}
+
+
+{
+  "template": 3,
+  "nome_campo": "Mês",
+  "tipo_campo": "number",
+  "pagina": 1,
+  "obrigatorio": false,
+  "posicao": [
+    { "x": 192.67, "y": 720.13, "font_size": 11, "font_name": "Helvetica" }
+  ]
+}
+
+{
+  "template": 3,
+  "nome_campo": "Ano",
+  "tipo_campo": "number",
+  "pagina": 1,
+  "obrigatorio": false,
+  "posicao": [
+    { "x": 218.67, "y": 720.13, "font_size": 11, "font_name": "Helvetica" }
+  ]
+}

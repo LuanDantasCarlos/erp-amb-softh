@@ -1,0 +1,205 @@
+{
+  "template": 4,
+  "nome_campo": "Nome do Paciente",
+  "tipo_campo": "text",
+  "pagina": 1,
+  "obrigatorio": false,
+  "atributo_paciente": "nome",
+  "posicao": [
+    {
+      "x": 53.17,
+      "y": 153.13,
+      "font_size": 12,
+      "font_name": "Helvetica",
+      "pagina": 1
+    },
+    {
+      "x": 123.17,
+      "y": 533.13,
+      "font_size": 12,
+      "font_name": "Helvetica",
+      "pagina": 2
+    }
+  ]
+}
+
+
+{
+  "template": 4,
+  "nome_campo": "Tratamento Constara dos Seguintes Medicamentos",
+  "tipo_campo": "checkbox",
+  "pagina": 2,
+  "obrigatorio": false,
+  "posicao": [
+    {
+      "x": 0,
+      "y": 0,
+      "font_size": 12,
+      "font_name": "Helvetica",
+      "pagina": 2
+    }
+  ],
+  "opcoes": [
+    {
+      "texto": "acetazolamida",
+      "posicao": { "x": 33.17, "y": 387.13 }
+    },
+    {
+      "texto": "bimatoprosta",
+      "posicao": { "x": 33.17, "y": 401.13 }
+    },
+    {
+      "texto": "brimonidina",
+      "posicao": { "x": 33.17, "y": 413.13 }
+    },
+    {
+      "texto": "brinzolamida",
+      "posicao": { "x": 33.17, "y": 425.13 }
+    },
+    {
+      "texto": "dorzolamida",
+      "posicao": { "x": 33.17, "y": 439.13 }
+    },
+    {
+      "texto": "latanoprosta",
+      "posicao": { "x": 33.17, "y": 453.13 }
+    },
+    {
+      "texto": "pilocarpina",
+      "posicao": { "x": 33.17, "y": 466.13 }
+    },
+    {
+      "texto": "timolol",
+      "posicao": { "x": 33.17, "y": 480.13 }
+    },
+    {
+      "texto": "travoprosta",
+      "posicao": { "x": 33.17, "y": 493.13 }
+    }
+  ]
+}
+
+
+{
+  "template": 4,
+  "nome_campo": "Local",
+  "tipo_campo": "text",
+  "pagina": 2,
+  "obrigatorio": false,
+  "posicao": [
+    {
+      "x": 67.17,
+      "y": 521.13,
+      "font_size": 12,
+      "font_name": "Helvetica",
+      "pagina": 2
+    }
+  ]
+}
+
+
+{
+  "template": 4,
+  "nome_campo": "Data",
+  "tipo_campo": "text",
+  "pagina": 2,
+  "obrigatorio": false,
+  "posicao": [
+    {
+      "x": 369.17,
+      "y": 519.13,
+      "font_size": 12,
+      "font_name": "Helvetica",
+      "pagina": 2
+    }
+  ]
+}
+
+
+{
+  "template": 4,
+  "nome_campo": "Cartão Nacional de Saude",
+  "tipo_campo": "text",
+  "pagina": 2,
+  "obrigatorio": false,
+  "posicao": [
+    {
+      "x": 160.17,
+      "y": 546.13,
+      "font_size": 12,
+      "font_name": "Helvetica",
+      "pagina": 2
+    }
+  ]
+}
+
+
+{
+  "template": 4,
+  "nome_campo": "Nome do responsavel Legal",
+  "tipo_campo": "text",
+  "pagina": 2,
+  "obrigatorio": false,
+  "posicao": [
+    {
+      "x": 165.17,
+      "y": 561.13,
+      "font_size": 12,
+      "font_name": "Helvetica",
+      "pagina": 2
+    }
+  ]
+}
+
+
+
+{
+  "template": 4,
+  "nome_campo": "Documento Legal do Responsavel",
+  "tipo_campo": "text",
+  "pagina": 2,
+  "obrigatorio": false,
+  "posicao": [
+    {
+      "x": 267.17,
+      "y": 574.13,
+      "font_size": 12,
+      "font_name": "Helvetica",
+      "pagina": 2
+    }
+  ]
+}
+
+{
+  "template": 4,
+  "nome_campo": "Medico Responsavel",
+  "tipo_campo": "text",
+  "pagina": 2,
+  "obrigatorio": false,
+  "posicao": [
+    {
+      "x": 133.17,
+      "y": 628.13,
+      "font_size": 12,
+      "font_name": "Helvetica",
+      "pagina": 2
+    }
+  ]
+}
+
+{
+  "template": 4,
+  "nome_campo": "CRM",
+  "tipo_campo": "text",
+  "pagina": 2,
+  "obrigatorio": false,
+  "posicao": [
+    {
+      "x": 413.17,
+      "y": 628.13,
+      "font_size": 12,
+      "font_name": "Helvetica",
+      "pagina": 2
+    }
+  ]
+}

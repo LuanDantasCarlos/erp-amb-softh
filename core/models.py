@@ -87,9 +87,18 @@ class TemplateDocumento(BaseModel):
 class CampoTemplateDocumento(BaseModel):
     TIPO_CAMPO_CHOICES = (
         ('text', _('Texto')),
+        ('textarea', _('Texto Longo')),
         ('number', _('Número')),
         ('date', _('Data')),
         ('boolean', _('Booleano')),
+        ('cpf', _('CPF')),
+        ('email', _('E-mail')),
+        ('telefone', _('Telefone')),
+        ('checkbox', _('Caixa de Seleção')),
+        ('select', _('Seleção')),
+        ('assinatura', _('Assinatura')),
+        ('imagem', _('Imagem')),
+        ('label', _('Texto Fixo')),
     )
 
     template = models.ForeignKey(
@@ -106,10 +115,18 @@ class CampoTemplateDocumento(BaseModel):
         default='text'
     )
     descricao = models.TextField(_('Descrição do Campo'), blank=True, null=True)
+
+    pagina = models.PositiveIntegerField(
+        _('Página do PDF'),
+        default=1,
+        help_text=_('Número da página do PDF onde este campo aparece.')
+    )
+
     posicao = models.JSONField(
         _('Posição do Campo'),
-        help_text=_('Configurações de posicionamento (ex: {"x": 100, "y": 200, "font_size": 12})')
+        help_text=_('Ex: {"x": 100, "y": 200, "font_size": 12, "font_name": "Helvetica"}')
     )
+
     obrigatorio = models.BooleanField(_('Campo Obrigatório'), default=False)
 
     atributo_paciente = models.CharField(
@@ -117,16 +134,63 @@ class CampoTemplateDocumento(BaseModel):
         max_length=50,
         blank=True,
         null=True,
-        help_text=_("Nome do atributo do paciente para preencher automaticamente (ex: 'nome', 'cpf')")
+        help_text=_("Ex: 'nome', 'cpf', etc.")
+    )
+
+    validacoes = models.JSONField(
+        _('Validações'),
+        blank=True,
+        null=True,
+        help_text=_("Ex: {'min_length': 3, 'max_length': 10, 'regex': '^\\d+$'}")
+    )
+
+    visivel_se = models.JSONField(
+        _('Visível se'),
+        blank=True,
+        null=True,
+        help_text=_("Ex: {'campo': 'tipo_documento', 'valor': 'Termo'}")
+    )
+
+    opcoes = models.JSONField(
+        _('Opções (para select/checkbox)'),
+        blank=True,
+        null=True,
+        help_text=_("Ex: ['Sim', 'Não', 'Talvez']")
+    )
+
+    ordem_formulario = models.PositiveIntegerField(
+        _('Ordem no Formulário'),
+        default=0,
+        help_text=_("Ordem de exibição no formulário.")
     )
 
     class Meta:
         verbose_name = _('Campo do Template')
         verbose_name_plural = _('Campos do Template')
-        ordering = ['template', 'nome_campo']
+        ordering = ['template', 'ordem_formulario', 'nome_campo']
 
     def __str__(self):
         return f"{self.template.nome} - {self.nome_campo}"
+
+    def save(self, *args, **kwargs):
+        """
+        Ao salvar, garante que cada opção (se for select ou checkbox) tem um 'id' único.
+        """
+        import uuid
+        if self.tipo_campo in ['select', 'checkbox'] and isinstance(self.opcoes, list):
+            novas_opcoes = []
+            for idx, opc in enumerate(self.opcoes):
+                if isinstance(opc, dict):
+                    opc = dict(opc)
+                    if 'id' not in opc:
+                        opc['id'] = str(uuid.uuid4())
+                    novas_opcoes.append(opc)
+                else:
+                    # transforma string em dict
+                    novas_opcoes.append({'id': str(uuid.uuid4()), 'texto': str(opc)})
+            self.opcoes = novas_opcoes
+        super().save(*args, **kwargs)
+
 
 
 def documento_upload_path(instance, filename):

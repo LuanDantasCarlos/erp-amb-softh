@@ -129,6 +129,10 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Inclua o CSS e JS do flatpickr no seu HTML -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const templateSelect = document.getElementById('id_template_id');
@@ -136,14 +140,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const nomeDocumentoInput = document.getElementById('id_nome_documento');
     const camposContainer = document.getElementById('campos-documento-container');
 
-    let dadosPaciente = {};  // Dados preenchidos do paciente
+    let dadosPaciente = {};
 
     function renderCampos(campos) {
         if (!campos.length) {
             camposContainer.innerHTML = '';
             return;
         }
-
         let html = `
             <div class="card mb-4">
                 <div class="card-header bg-secondary text-white">
@@ -151,14 +154,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="card-body">
         `;
-
         campos.forEach(campo => {
             const obrigatorio = campo.obrigatorio ? 'required' : '';
             const label = `<label for="campo_${campo.id}" class="form-label">${campo.nome}${campo.obrigatorio ? '*' : ''}</label>`;
-            const nameAttr = `name="${campo.id}"`;
-            const valueFromPaciente = campo.atributo_paciente && dadosPaciente[campo.atributo_paciente] !== undefined
-                ? dadosPaciente[campo.atributo_paciente]
-                : '';
+            const nameAttr = `name="campo_${campo.id}"`;
+            const nameAttrCheckbox = `name="campo_${campo.id}[]"`;
+
+            const valorPaciente = dadosPaciente[campo.atributo_paciente];
+            let valueFromPaciente = '';
+            if (campo.tipo === 'checkbox' && campo.opcoes && Array.isArray(campo.opcoes)) {
+                if (Array.isArray(valorPaciente)) {
+                    valueFromPaciente = valorPaciente;
+                } else if (typeof valorPaciente === 'string') {
+                    valueFromPaciente = valorPaciente.split(',').map(v => v.trim());
+                } else {
+                    valueFromPaciente = [];
+                }
+            } else {
+                valueFromPaciente = valorPaciente !== undefined ? valorPaciente : '';
+            }
 
             let input = '';
             switch (campo.tipo) {
@@ -166,22 +180,61 @@ document.addEventListener('DOMContentLoaded', function() {
                     input = `<input type="text" id="campo_${campo.id}" ${nameAttr} class="form-control" ${obrigatorio} value="${valueFromPaciente}">`;
                     break;
                 case 'textarea':
-                    input = `<textarea id="campo_${campo.id}" ${nameAttr} class="form-control" ${obrigatorio}>${valueFromPaciente}</textarea>`;
+                    const maxLengthAttr = campo.maxlength ? `maxlength="${campo.maxlength}"` : '';
+                    input = `<textarea id="campo_${campo.id}" ${nameAttr} class="form-control" ${obrigatorio} ${maxLengthAttr}>${valueFromPaciente}</textarea>`;
                     break;
                 case 'numero':
                     input = `<input type="number" id="campo_${campo.id}" ${nameAttr} class="form-control" ${obrigatorio} value="${valueFromPaciente}">`;
                     break;
                 case 'data':
-                    input = `<input type="date" id="campo_${campo.id}" ${nameAttr} class="form-control" ${obrigatorio} value="${valueFromPaciente}">`;
+                    let valorFormatado = '';
+                    if (valueFromPaciente) {
+                        const d = new Date(valueFromPaciente);
+                        if (!isNaN(d)) {
+                            const mm = String(d.getMonth() + 1).padStart(2, '0');
+                            const dd = String(d.getDate()).padStart(2, '0');
+                            const yyyy = d.getFullYear();
+                            valorFormatado = `${mm}/${dd}/${yyyy}`;
+                        }
+                    }
+                    input = `<input type="text" id="campo_${campo.id}" ${nameAttr} class="form-control datepicker" ${obrigatorio} value="${valorFormatado}">`;
                     break;
                 case 'checkbox':
-                    const checked = valueFromPaciente === true || valueFromPaciente === 'True' ? 'checked' : '';
-                    input = `
-                        <div class="form-check">
-                            <input type="checkbox" id="campo_${campo.id}" ${nameAttr} class="form-check-input" value="True" ${checked}>
-                            <label class="form-check-label" for="campo_${campo.id}">${campo.nome}</label>
-                        </div>
-                    `;
+                    if (campo.opcoes && Array.isArray(campo.opcoes)) {
+                        input = campo.opcoes.map((opcao, index) => {
+                            const valorOpcao = opcao.id ? String(opcao.id) : (opcao.texto || opcao);
+                            const textoOpcao = opcao.texto || valorOpcao;
+                            const idInput = `campo_${campo.id}_opcao_${index}`;
+                            const checked = valueFromPaciente.includes(valorOpcao) ? 'checked' : '';
+                            return `
+                                <div class="form-check">
+                                    <input type="checkbox" id="${idInput}" ${nameAttrCheckbox} class="form-check-input" value="${valorOpcao}" ${checked}>
+                                    <label class="form-check-label" for="${idInput}">${textoOpcao}</label>
+                                </div>
+                            `;
+                        }).join('');
+                    } else {
+                        const checked = (valueFromPaciente === true || valueFromPaciente === 'True' || valueFromPaciente === 'true') ? 'checked' : '';
+                        input = `
+                            <div class="form-check">
+                                <input type="checkbox" id="campo_${campo.id}" ${nameAttr} class="form-check-input" value="True" ${checked}>
+                                <label class="form-check-label" for="campo_${campo.id}">${campo.nome}</label>
+                            </div>
+                        `;
+                    }
+                    break;
+                case 'select':
+                    if (campo.opcoes && Array.isArray(campo.opcoes)) {
+                        input = `<select id="campo_${campo.id}" ${nameAttr} class="form-select" ${obrigatorio}>`;
+                        input += `<option value="">Selecione...</option>`;
+                        campo.opcoes.forEach(opcao => {
+                            const valorOpcao = opcao.id ? String(opcao.id) : (opcao.texto || opcao);
+                            const textoOpcao = opcao.texto || valorOpcao;
+                            const selected = valueFromPaciente == valorOpcao ? 'selected' : '';
+                            input += `<option value="${valorOpcao}" ${selected}>${textoOpcao}</option>`;
+                        });
+                        input += `</select>`;
+                    }
                     break;
                 default:
                     input = `<input type="text" id="campo_${campo.id}" ${nameAttr} class="form-control" ${obrigatorio} value="${valueFromPaciente}">`;
@@ -192,6 +245,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         html += `</div></div>`;
         camposContainer.innerHTML = html;
+
+        flatpickr(".datepicker", {
+            dateFormat: "m/d/Y",
+            allowInput: true
+        });
     }
 
     function fetchCamposTemplate(templateId) {
@@ -269,6 +327,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
 
 
 {% endblock %}

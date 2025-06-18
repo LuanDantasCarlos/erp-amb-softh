@@ -1,0 +1,106 @@
+{
+  "template": 1,
+  "nome_campo": "Nome Paciente",
+  "tipo_campo": "text",
+  "pagina": 1,
+  "obrigatorio": false,
+  "atributo_paciente": "nome",
+  "posicao": [
+    {
+      "x": 130.67,
+      "y": 333.13,
+      "font_size": 12,
+      "font_name": "Helvetica",
+      "pagina": 1
+    }
+  ]
+}
+
+{
+  "template": 1,
+  "nome_campo": "Olho Direito Longe",
+  "tipo_campo": "text",
+  "pagina": 1,
+  "obrigatorio": false,
+  "posicao": [
+    {
+      "x": 193.67,
+      "y": 440.13,
+      "font_size": 12,
+      "font_name": "Helvetica",
+      "pagina": 1
+    }
+  ]
+}
+
+
+{
+  "template": 1,
+  "nome_campo": "Olho Esquerdo Longe",
+  "tipo_campo": "text",
+  "pagina": 1,
+  "obrigatorio": false,
+  "posicao": [
+    {
+      "x": 196.67,
+      "y": 458.13,
+      "font_size": 12,
+      "font_name": "Helvetica",
+      "pagina": 1
+    }
+  ]
+}
+
+
+{
+  "template": 1,
+  "nome_campo": "Olho Direito Perto",
+  "tipo_campo": "text",
+  "pagina": 1,
+  "obrigatorio": false,
+  "posicao": [
+    {
+      "x": 192.67,
+      "y": 509.13,
+      "font_size": 12,
+      "font_name": "Helvetica",
+      "pagina": 1
+    }
+  ]
+}
+
+
+{
+  "template": 1,
+  "nome_campo": "Olho Esquerdo Perto",
+  "tipo_campo": "text",
+  "pagina": 1,
+  "obrigatorio": false,
+  "posicao": [
+    {
+      "x": 193.67,
+      "y": 524.13,
+      "font_size": 12,
+      "font_name": "Helvetica",
+      "pagina": 1
+    }
+  ]
+}
+
+
+{
+  "template": 1,
+  "nome_campo": "Data",
+  "tipo_campo": "text",
+  "pagina": 1,
+  "obrigatorio": false,
+  "posicao": [
+    {
+      "x": 86.67,
+      "y": 590.13,
+      "font_size": 12,
+      "font_name": "Helvetica",
+      "pagina": 1
+    }
+  ]
+}

@@ -51,13 +51,38 @@ class DocumentoViewSet(viewsets.ModelViewSet):
         campos_valores = serializer.validated_data['campos']
 
         try:
-            # Validar campos obrigatórios
+            # Validar campos obrigatórios e tipos
             for campo in template_doc.campos.all():
-                if campo.obrigatorio and campo.nome_campo not in campos_valores:
+                valor = campos_valores.get(campo.nome_campo)
+                if campo.obrigatorio and (valor is None or str(valor).strip() == ''):
                     return Response(
                         {"error": f"O campo obrigatório '{campo.nome_campo}' não foi preenchido."},
                         status=status.HTTP_400_BAD_REQUEST
                     )
+                
+                if valor:
+                    if campo.tipo_campo == 'number':
+                        try:
+                            float(valor)
+                        except (ValueError, TypeError):
+                            return Response(
+                                {"error": f"O campo '{campo.nome_campo}' deve ser um número."},
+                                status=status.HTTP_400_BAD_REQUEST
+                            )
+                    elif campo.tipo_campo == 'date':
+                        try:
+                            datetime.strptime(valor, '%d/%m/%Y')  # Ajuste o formato conforme seu padrão
+                        except (ValueError, TypeError):
+                            return Response(
+                                {"error": f"O campo '{campo.nome_campo}' deve ser uma data no formato DD/MM/AAAA."},
+                                status=status.HTTP_400_BAD_REQUEST
+                            )
+                    elif campo.tipo_campo == 'boolean':
+                        if str(valor) not in ['True', 'False', 'Sim', 'Não']:
+                            return Response(
+                                {"error": f"O campo '{campo.nome_campo}' deve ser 'Sim' ou 'Não'."},
+                                status=status.HTTP_400_BAD_REQUEST
+                            )
 
             # Criar o documento
             documento = Documento.objects.create(
@@ -97,6 +122,7 @@ class DocumentoViewSet(viewsets.ModelViewSet):
                 "error": str(e),
                 "traceback": traceback.format_exc()
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
     @action(detail=True, methods=['get'])
     def download(self, request, pk=None):
