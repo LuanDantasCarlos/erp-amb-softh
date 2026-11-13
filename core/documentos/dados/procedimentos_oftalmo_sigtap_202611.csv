@@ -1,0 +1,147 @@
+codigo,nome,grupo,instrumentos
+02.11.06.001-1,BIOMETRIA ULTRASSÔNICA (MONOCULAR),Diagnóstico em oftalmologia,BPA-I
+02.11.06.002-0,BIOMICROSCOPIA DE FUNDO DE OLHO,Diagnóstico em oftalmologia,BPA-C/BPA-I/APAC-sec
+02.11.06.003-8,CAMPIMETRIA COMPUTADORIZADA OU MANUAL COM GRÁFICO,Diagnóstico em oftalmologia,BPA-C/BPA-I/APAC-sec
+02.11.06.005-4,CERATOMETRIA,Diagnóstico em oftalmologia,BPA-C/BPA-I
+02.11.06.006-2,CURVA DIARIA DE PRESSAO OCULAR CDPO (MINIMO 3 MEDIDAS),Diagnóstico em oftalmologia,BPA-C/BPA-I
+02.11.06.007-0,ELETRO-OCULOGRAFIA,Diagnóstico em oftalmologia,BPA-C/BPA-I
+02.11.06.008-9,ELETRORETINOGRAFIA,Diagnóstico em oftalmologia,BPA-C/BPA-I
+02.11.06.009-7,ESTESIOMETRIA,Diagnóstico em oftalmologia,BPA-C/BPA-I
+02.11.06.010-0,FUNDOSCOPIA,Diagnóstico em oftalmologia,BPA-C/BPA-I/APAC-sec
+02.11.06.011-9,GONIOSCOPIA,Diagnóstico em oftalmologia,BPA-I
+02.11.06.012-7,MAPEAMENTO DE RETINA,Diagnóstico em oftalmologia,BPA-I/APAC-sec
+02.11.06.013-5,MEDIDA DE OFUSCAMENTO E CONTRASTE,Diagnóstico em oftalmologia,BPA-C/BPA-I
+02.11.06.014-3,MICROSCOPIA ESPECULAR DE CORNEA,Diagnóstico em oftalmologia,BPA-C/BPA-I
+02.11.06.015-1,POTENCIAL DE ACUIDADE VISUAL,Diagnóstico em oftalmologia,BPA-C/BPA-I
+02.11.06.016-0,POTENCIAL VISUAL EVOCADO,Diagnóstico em oftalmologia,BPA-C/BPA-I
+02.11.06.017-8,RETINOGRAFIA COLORIDA BINOCULAR,Diagnóstico em oftalmologia,BPA-I/APAC-sec
+02.11.06.018-6,RETINOGRAFIA FLUORESCENTE BINOCULAR,Diagnóstico em oftalmologia,BPA-I
+02.11.06.020-8,TESTE DE PROVOCACAO DE GLAUCOMA,Diagnóstico em oftalmologia,BPA-C/BPA-I
+02.11.06.021-6,TESTE DE SCHIRMER,Diagnóstico em oftalmologia,BPA-C/BPA-I
+02.11.06.022-4,TESTE DE VISÃO DE CORES,Diagnóstico em oftalmologia,BPA-C/BPA-I/APAC-sec
+02.11.06.023-2,TESTE ORTÓPTICO,Diagnóstico em oftalmologia,BPA-I/APAC-sec
+02.11.06.024-0,TESTE P/ ADAPTACAO DE LENTE DE CONTATO,Diagnóstico em oftalmologia,BPA-C/BPA-I
+02.11.06.025-9,TONOMETRIA,Diagnóstico em oftalmologia,BPA-I/AIH-esp/APAC-sec
+02.11.06.026-7,TOPOGRAFIA COMPUTADORIZADA DE CÓRNEA,Diagnóstico em oftalmologia,BPA-I
+02.11.06.027-5,TRIAGEM OFTALMOLÓGICA,Diagnóstico em oftalmologia,BPA-C/BPA-I
+02.11.06.028-3,TOMOGRAFIA DE COERÊNCIA ÓPTICA,Diagnóstico em oftalmologia,APAC
+02.11.06.029-1,TRIAGEM OCULAR NEONATAL (TON),Diagnóstico em oftalmologia,BPA-I/AIH-sec/10
+02.11.06.030-5,TESTE DO REFLEXO VERMELHO (TRV),Diagnóstico em oftalmologia,BPA-I/AIH-sec/10
+03.03.05.001-2,ACOMPANHAMENTO E AVALIACAO DE GLAUCOMA POR FUNDOSCOPIA E TONOMETRIA,Tratamento de doenças do aparelho da visão,APAC
+03.03.05.002-0,EXERCICIOS ORTOPTICOS,Tratamento de doenças do aparelho da visão,BPA-C/BPA-I
+03.03.05.003-9,TRATAMENTO OFTALMOLÒGICO DE PACIENTE C/ GLAUCOMA BINOCULAR (1ª LINHA ),Tratamento de doenças do aparelho da visão,APAC-sec
+03.03.05.004-7,TRATAMENTO OFTALMOLÓGICO DE PACIENTE C/ GLAUCOMA BINOCULAR (2ª LINHA),Tratamento de doenças do aparelho da visão,APAC-sec
+03.03.05.005-5,TRATAMENTO OFTALMOLÓGICO DE PACIENTE C/ GLAUCOMA BINOCULAR (3 ª LINHA),Tratamento de doenças do aparelho da visão,APAC-sec
+03.03.05.006-3,TRATAMENTO OFTALMOLÓGICO DE PACIENTE C/ GLAUCOMA MONOCULAR (1ª LINHA ),Tratamento de doenças do aparelho da visão,APAC-sec
+03.03.05.007-1,TRATAMENTO OFTALMOLÓGICO DE PACIENTE COM GLAUCOMA MONOCULAR (2ª LINHA),Tratamento de doenças do aparelho da visão,APAC-sec
+03.03.05.008-0,TRATAMENTO OFTALMOLÓGICO DE PACIENTE COM GLAUCOMA MONOCULAR (3ª LINHA),Tratamento de doenças do aparelho da visão,APAC-sec
+03.03.05.009-8,TRATAMENTO OFTALMOLOGICO DE PACIENTE COM GLAUCOMA COM DISPENSAÇÃO DE ACETAZOLAMIDA MONOCULAR OU BINOCULAR,Tratamento de doenças do aparelho da visão,APAC-sec
+03.03.05.010-1,TRATAMENTO OFTALMOLÓGICO DE PACIENTE COM GLAUCOMA COM DISPENSAÇÃO DE PILOCARPINA MONOCULAR,Tratamento de doenças do aparelho da visão,APAC-sec
+03.03.05.011-0,TRATAMENTO OFTALMOLÓGICO DE PACIENTE COM GLAUCOMA COM DISPENSAÇÃO DE PILOCARPINA BINOCULAR,Tratamento de doenças do aparelho da visão,APAC-sec
+03.03.05.013-6,TRATAMENTO CLÍNICO DE INTERCORRÊNCIAS OFTALMOLÓGICAS,Tratamento de doenças do aparelho da visão,AIH
+03.03.05.014-4,TRATAMENTO CLÍNICO DE INTERCORRÊNCIAS OFTALMOLÓGICAS DE ORIGEM INFECCIOSA,Tratamento de doenças do aparelho da visão,AIH
+03.03.05.015-2,TRATAMENTO OFTALMOLÓGICO DE PACIENTE COM GLAUCOMA - 1ª LINHA ASSOCIADA A 2ª LINHA - MONOCULAR,Tratamento de doenças do aparelho da visão,APAC-sec
+03.03.05.016-0,TRATAMENTO OFTALMOLÓGICO DE PACIENTE COM GLAUCOMA - 1ª LINHA ASSOCIADA A 2ª LINHA - BINOCULAR,Tratamento de doenças do aparelho da visão,APAC-sec
+03.03.05.017-9,TRATAMENTO OFTALMOLÓGICO DE PACIENTE COM GLAUCOMA - 1ª LINHA ASSOCIADA A 3ª LINHA - MONOCULAR,Tratamento de doenças do aparelho da visão,APAC-sec
+03.03.05.018-7,TRATAMENTO OFTALMOLÓGICO DE PACIENTE COM GLAUCOMA - 1ª LINHA ASSOCIADA A 3ª LINHA - BINOCULAR,Tratamento de doenças do aparelho da visão,APAC-sec
+03.03.05.019-5,TRATAMENTO OFTALMOLÓGICO DE PACIENTE COM GLAUCOMA - 2ª LINHA ASSOCIADA A 3ª LINHA - MONOCULAR,Tratamento de doenças do aparelho da visão,APAC-sec
+03.03.05.020-9,TRATAMENTO OFTALMOLÓGICO DE PACIENTE COM GLAUCOMA - 2ª LINHA ASSOCIADA A 3ª LINHA - BINOCULAR,Tratamento de doenças do aparelho da visão,APAC-sec
+03.03.05.021-7,"TRATAMENTO OFTALMOLÓGICO DE PACIENTE COM GLAUCOMA MONOCULAR- ASSOCIAÇÃO DE 1ª, 2ª E 3ª LINHAS",Tratamento de doenças do aparelho da visão,APAC-sec
+03.03.05.022-5,"TRATAMENTO OFTALMOLÓGICO DE PACIENTE COM GLAUCOMA BINOCULAR - ASSOCIAÇÃO 1ª, 2ª E 3ª LINHAS",Tratamento de doenças do aparelho da visão,APAC-sec
+03.03.05.023-3,TRATAMENTO MEDICAMENTOSO DE DOENÇA DA RETINA,Tratamento de doenças do aparelho da visão,APAC
+04.05.01.001-0,CORRECAO CIRURGICA DE ENTROPIO E ECTROPIO,Pálpebras e vias lacrimais,AIH/APAC
+04.05.01.002-8,CORREÇÃO CIRÚRGICA DE EPICANTO E TELECANTO,Pálpebras e vias lacrimais,AIH/APAC
+04.05.01.003-6,DACRIOCISTORRINOSTOMIA,Pálpebras e vias lacrimais,AIH/APAC
+04.05.01.004-4,DRENAGEM DE ABSCESSO DE PALPEBRA,Pálpebras e vias lacrimais,BPA-I
+04.05.01.005-2,EPILACAO A LASER,Pálpebras e vias lacrimais,BPA-C/BPA-I
+04.05.01.006-0,EPILACAO DE CILIOS,Pálpebras e vias lacrimais,BPA-C/BPA-I
+04.05.01.007-9,EXÉRESE DE CALAZIO E OUTRAS PEQUENAS LESOES DA PALPEBRA E SUPERCILIOS,Pálpebras e vias lacrimais,AIH/APAC
+04.05.01.008-7,EXTIRPAÇÃO DE GLANDULA LACRIMAL,Pálpebras e vias lacrimais,AIH
+04.05.01.010-9,OCLUSAO DE PONTO LACRIMAL,Pálpebras e vias lacrimais,BPA-C/BPA-I
+04.05.01.011-7,RECONSTITUICAO DE CANAL LACRIMAL,Pálpebras e vias lacrimais,AIH/APAC
+04.05.01.012-5,RECONSTITUIÇÃO PARCIAL DE PALPEBRA COM TARSORRAFIA,Pálpebras e vias lacrimais,AIH/APAC
+04.05.01.013-3,RECONSTITUIÇÃO TOTAL DE PALPEBRA,Pálpebras e vias lacrimais,AIH
+04.05.01.014-1,SIMBLEFAROPLASTIA,Pálpebras e vias lacrimais,BPA-C/BPA-I
+04.05.01.015-0,SONDAGEM DE CANAL LACRIMAL SOB ANESTESIA GERAL,Pálpebras e vias lacrimais,AIH
+04.05.01.016-8,SONDAGEM DE VIAS LACRIMAIS,Pálpebras e vias lacrimais,BPA-I
+04.05.01.017-6,SUTURA DE PALPEBRAS,Pálpebras e vias lacrimais,BPA-I/AIH
+04.05.01.018-4,TRATAMENTO CIRURGICO DE BLEFAROCALASE,Pálpebras e vias lacrimais,BPA-I
+04.05.01.019-2,TRATAMENTO CIRURGICO DE TRIQUIASE C/ OU S/ ENXERTO,Pálpebras e vias lacrimais,BPA-I
+04.05.01.020-6,PUNCTOPLASTIA,Pálpebras e vias lacrimais,BPA-C/BPA-I
+04.05.02.001-5,CORREÇÃO CIRÚRGICA DE ESTRABISMO (ACIMA DE 2 MUSCULOS),Músculos oculomotores,AIH/APAC
+04.05.02.002-3,CORREÇÃO CIRÚRGICA DO ESTRABISMO (ATE 2 MUSCULOS),Músculos oculomotores,AIH/APAC
+04.05.03.001-0,APLICAÇÃO DE PLACA RADIOATIVA EPISCLERAL,"Corpo vítreo, retina, coróide e esclera",AIH
+04.05.03.002-9,BIOPSIA DE TUMOR INTRA OCULAR,"Corpo vítreo, retina, coróide e esclera",BPA-I/AIH
+04.05.03.003-7,CRIOTERAPIA OCULAR,"Corpo vítreo, retina, coróide e esclera",BPA-C/BPA-I
+04.05.03.004-5,FOTOCOAGULAÇÃO A LASER,"Corpo vítreo, retina, coróide e esclera",APAC
+04.05.03.005-3,INJECAO INTRA-VITREO,"Corpo vítreo, retina, coróide e esclera",BPA-I/AIH-sec
+04.05.03.007-0,RETINOPEXIA COM INTROFLEXÃO ESCLERAL,"Corpo vítreo, retina, coróide e esclera",AIH/APAC
+04.05.03.009-6,SUTURA DE ESCLERA,"Corpo vítreo, retina, coróide e esclera",BPA-I/AIH
+04.05.03.010-0,TRATAMENTO CIRURGICO DE DEISCENCIA DE SUTURA DE ESCLERA,"Corpo vítreo, retina, coróide e esclera",BPA-C/BPA-I
+04.05.03.011-8,TRATAMENTO CIRURGICO DE MIIASE PALPEBRAL,"Corpo vítreo, retina, coróide e esclera",BPA-I/AIH-esp
+04.05.03.012-6,TRATAMENTO CIRURGICO DE NEOPLASIA DE ESCLERA,"Corpo vítreo, retina, coróide e esclera",BPA-I
+04.05.03.013-4,VITRECTOMIA ANTERIOR,"Corpo vítreo, retina, coróide e esclera",AIH/APAC
+04.05.03.014-2,VITRECTOMIA POSTERIOR,"Corpo vítreo, retina, coróide e esclera",AIH
+04.05.03.015-0,VITRIOLISE A YAG LASER,"Corpo vítreo, retina, coróide e esclera",BPA-C/BPA-I
+04.05.03.016-9,VITRECTOMIA POSTERIOR COM INFUSÃO DE PERFLUOCARBONO E ENDOLASER,"Corpo vítreo, retina, coróide e esclera",AIH
+04.05.03.017-7,VITRECTOMIA POSTERIOR COM INFUSÃO DE PERFLUOCARBONO/ÓLEO DE SILICONE/ENDOLASER,"Corpo vítreo, retina, coróide e esclera",AIH
+04.05.03.018-5,TERMOTERAPIA TRANSPUPILAR,"Corpo vítreo, retina, coróide e esclera",AIH
+04.05.03.019-3,PAN-FOTOCOAGULAÇÃO DE RETINA A LASER,"Corpo vítreo, retina, coróide e esclera",AIH/AIH-esp/APAC/APAC-sec
+04.05.03.020-7,DRENAGEM DE HEMORRAGIA DE CORÓIDE,"Corpo vítreo, retina, coróide e esclera",AIH
+04.05.03.021-5,RETINOPEXIA PNEUMÁTICA,"Corpo vítreo, retina, coróide e esclera",BPA-I
+04.05.03.022-3,REMOÇÃO DE ÓLEO DE SILICONE,"Corpo vítreo, retina, coróide e esclera",BPA-I
+04.05.03.023-1,REMOÇÃO DE IMPLANTE EPISCLERAL,"Corpo vítreo, retina, coróide e esclera",BPA-I
+04.05.04.001-6,CORREÇÃO CIRURGICA DE LAGOFTALMO,Cavidade orbitária e globo ocular,AIH/APAC
+04.05.04.002-4,CRIOTERAPIA DE TUMORES INTRA-OCULARES,Cavidade orbitária e globo ocular,AIH
+04.05.04.004-0,DESCOMPRESSÃO DE NERVO ÓPTICO,Cavidade orbitária e globo ocular,AIH
+04.05.04.005-9,DESCOMPRESSÃO DE ORBITA,Cavidade orbitária e globo ocular,AIH
+04.05.04.006-7,ENUCLEAÇÃO DE GLOBO OCULAR,Cavidade orbitária e globo ocular,AIH/APAC
+04.05.04.007-5,EVISCERAÇÃO DE GLOBO OCULAR,Cavidade orbitária e globo ocular,AIH/APAC
+04.05.04.008-3,EXENTERAÇÃO DE ORBITA,Cavidade orbitária e globo ocular,AIH
+04.05.04.009-1,EXÉRESE DE TUMOR MALIGNO INTRA-OCULAR,Cavidade orbitária e globo ocular,AIH
+04.05.04.010-5,EXPLANTE DE LENTE INTRA OCULAR,Cavidade orbitária e globo ocular,AIH/APAC
+04.05.04.013-0,INJECAO RETROBULBAR / PERIBULBAR,Cavidade orbitária e globo ocular,BPA-I
+04.05.04.014-8,ORBITOTOMIA,Cavidade orbitária e globo ocular,AIH
+04.05.04.015-6,RECONSTITUIÇÃO DE CAVIDADE ORBITÁRIA,Cavidade orbitária e globo ocular,AIH
+04.05.04.016-4,RECONSTITUIÇÃO DE PAREDE DA ORBITA,Cavidade orbitária e globo ocular,AIH
+04.05.04.018-0,TRANSPLANTE DE PERIOSTEO EM ESCLEROMALACIA,Cavidade orbitária e globo ocular,AIH
+04.05.04.019-9,TRATAMENTO CIRURGICO DE XANTELASMA,Cavidade orbitária e globo ocular,BPA-C/BPA-I
+04.05.04.020-2,TRATAMENTO DE PTOSE PALPEBRAL,Cavidade orbitária e globo ocular,AIH/APAC
+04.05.04.021-0,REPOSICIONAMENTO DE LENTE INTRAOCULAR,Cavidade orbitária e globo ocular,AIH/APAC
+04.05.05.001-1,CAPSULECTOMIA POSTERIOR CIRURGICA,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",AIH/APAC
+04.05.05.002-0,CAPSULOTOMIA A YAG LASER,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",APAC
+04.05.05.003-8,CAUTERIZACAO DE CORNEA,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",BPA-I/AIH-sec
+04.05.05.004-6,CICLOCRIOCOAGULAÇÃO / DIATERMIA,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",AIH/APAC
+04.05.05.005-4,CICLODIALISE,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",AIH/APAC
+04.05.05.006-2,CORRECAO DE ASTIGMATISMO SECUNDARIO,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",BPA-C/BPA-I
+04.05.05.007-0,CORRECAO CIRURGICA DE HERNIA DE IRIS,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",BPA-C/BPA-I
+04.05.05.008-9,EXERESE DE TUMOR DE CONJUNTIVA,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",BPA-I
+04.05.05.009-7,FACECTOMIA COM IMPLANTE DE LENTE INTRA-OCULAR,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",AIH/APAC
+04.05.05.010-0,FACECTOMIA S/ IMPLANTE DE LENTE INTRA-OCULAR,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",AIH/APAC
+04.05.05.011-9,FACOEMULSIFICAÇÃO COM IMPLANTE DE LENTE INTRA-OCULAR RIGIDA,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",AIH/APAC
+04.05.05.012-7,FOTOTRABECULOPLASTIA A LASER,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",APAC
+04.05.05.013-5,IMPLANTE DE PRÓTESE ANTI-GLAUCOMATOSA,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",AIH
+04.05.05.014-3,IMPLANTE INTRA-ESTROMAL,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",AIH/APAC
+04.05.05.015-1,IMPLANTE SECUNDÁRIO DE LENTE INTRA-OCULAR - LIO,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",AIH/APAC
+04.05.05.016-0,INJECAO SUBCONJUTIVAL / SUBTENONIANA,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",BPA-I
+04.05.05.017-8,IRIDECTOMIA CIRURGICA,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",BPA-I
+04.05.05.018-6,IRIDOCICLECTOMIA,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",AIH
+04.05.05.019-4,IRIDOTOMIA A LASER,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",APAC
+04.05.05.020-8,PARACENTESE DE CAMARA ANTERIOR,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",BPA-I
+04.05.05.021-6,RECOBRIMENTO CONJUNTIVAL,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",AIH/APAC
+04.05.05.022-4,RECONSTITUIÇÃO DE FORNIX CONJUNTIVAL,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",AIH/APAC
+04.05.05.023-2,RECONSTRUÇÃO DE CAMARA ANTERIOR DO OLHO,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",AIH
+04.05.05.024-0,RETIRADA DE CORPO ESTRANHO DA CAMARA ANTERIOR DO OLHO,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",BPA-I
+04.05.05.025-9,RETIRADA DE CORPO ESTRANHO DA CORNEA,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",BPA-I/AIH-sec
+04.05.05.026-7,SINEQUIOLISE A YAG LASER,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",BPA-I
+04.05.05.028-3,SUBSTITUICAO DE LENTE INTRA-OCULAR,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",BPA-I
+04.05.05.029-1,SUTURA DE CONJUNTIVA,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",BPA-I
+04.05.05.030-5,SUTURA DE CORNEA,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",BPA-I
+04.05.05.031-3,TOPOPLASTIA DO TRANSPLANTE,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",AIH
+04.05.05.032-1,TRABECULECTOMIA,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",AIH/APAC
+04.05.05.035-6,TRATAMENTO CIRÚRGICO DE GLAUCOMA CONGENITO,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",AIH
+04.05.05.036-4,TRATAMENTO CIRURGICO DE PTERIGIO,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",BPA-C/BPA-I
+04.05.05.037-2,FACOEMULSIFICAÇÃO COM IMPLANTE DE LENTE INTRA-OCULAR DOBRAVEL,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",AIH/APAC
+04.05.05.038-0,CIRURGIA DE CATARATA CONGÊNITA,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",AIH
+04.05.05.039-9,TRATAMENTO CIRÚRGICO DE DEISCÊNCIA DE SUTURA DE CÓRNEA,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",BPA-I/AIH
+04.05.05.040-2,RADIAÇÃO PARA CROSS LINKING CORNEANO,"Conjuntiva, córnea, câmara anterior, íris, corpo ciliar e cristalino",BPA-I/AIH
