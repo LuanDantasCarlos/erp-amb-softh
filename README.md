@@ -96,8 +96,10 @@ Deploy de uma nova versão (via SSH, porta 2222):
 cd ~/apps/erp-amb-softh && git pull
 ~/.local/bin/uv pip install --python .venv/bin/python -r requirements.txt
 .venv/bin/python manage.py migrate --noinput && .venv/bin/python manage.py collectstatic --noinput
-cp deploy/cpanel/index.fcgi ~/ambulatorio_public/index.fcgi && chmod 755 ~/ambulatorio_public/index.fcgi
-touch ~/ambulatorio_public/index.fcgi   # o mod_fcgid recarrega o processo
+# Recarregar o código: o mod_fcgid identifica o processo pelo inode do script. `touch` NÃO basta;
+# é preciso um arquivo novo (cp + mv) para as próximas requisições subirem um processo novo.
+cp deploy/cpanel/index.fcgi ~/ambulatorio_public/index.fcgi.new && chmod 755 ~/ambulatorio_public/index.fcgi.new
+mv -f ~/ambulatorio_public/index.fcgi.new ~/ambulatorio_public/index.fcgi
 ```
 
 - `passenger_wsgi.py` fica para hosts com Passenger; ele se reexecuta com o `.venv` (o Passenger usa o Python do sistema).
