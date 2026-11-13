@@ -213,9 +213,42 @@ Campos JSON → colunas do CSV (chunk 80, `corpoExportaCsv`):
 **Decisão de implementação:** o cliente HTTP gera **o mesmo CSV** que o front gera (mesmas 21 colunas e formatação)
 e o entrega ao `importar_arquivo`. Assim o leitor, a idempotência por sha256 e a auditoria continuam iguais.
 
-**Pendente para o spike com login (no servidor):** campos reais do formulário CAS; nome do header de perfil;
-endpoints e ids de usuário/perfil/vínculo; id do estabelecimento `RCS SOLUCOES MEDICAS S/A`; id de `tipoData=AGENDAMENTO`;
-ids da lista de situações default; formato das datas no JSON (epoch ou ISO).
+### Fase 2 — spike com login (13/11/2026, executado no servidor) — CONFIRMADO
+
+Fluxo validado com `requests` (sem navegador), do servidor HostGator:
+
+1. `GET {API}oauth2/login` (sem seguir redirect) → `204`, header `Location` = URL de authorize do CAS
+2. `GET <Location>` (seguindo redirects) → página de login do CAS em `/public-health-sso/login?service=…`.
+   Formulário: `action="login"`, `method=post`, campos `username`, `password`, `execution` (hidden), `_eventId=submit`, `geolocation` (vazio)
+3. `POST` para `urljoin(url_da_pagina, "login")` com esses campos, **sem seguir redirects**. Seguir manualmente
+   (`callbackAuthorize` → `authorize` (http) → `authorize` (https)) até `Location` conter
+   `…/consultas-exames/#access_token=AT-…&token_type=bearer&expires_in=28800` (token válido por 8 h)
+4. Sem chamada de `autorizacao/`: basta enviar em todas as requisições:
+   - `Authorization: Bearer <access_token>`
+   - `MVFor-Profile: base64(JSON compacto {"user":14217,"profile":57,"company":711,"professionalBond":261621})`
+5. `GET {API}solicitacao-procedimento/solicitacoes-consulta-regulador-com-vinculos` com query:
+   `idUnidadeExecutante=2147&tipoData=1&periodoInicial=<ISO UTC>&periodoFinal=<ISO UTC>&prioridade=5&idUnidadeSolicitante=711&idEstabelecimento=711`
+   → `200`, array JSON. Hoje→30/11: **3.941 registros em ~20 s, ~6 MB**.
+
+`API = https://regulacao.saude.es.gov.br/consultas-exames/api/`
+
+| Parâmetro | Valor | Origem |
+|---|---|---|
+| user | `14217` | `GET usuario/currentUser` → `id` |
+| profile | `57` (COORDENADOR DE UNIDADE CMCE) | `GET perfilUsuario/listarPerfilPorDescricaoUsuarioEModulo` |
+| company | `711` (NUCLEO ESPECIAL DE REGULACAO DE CONSULTAS E EXAMES) | `GET vinculoProfissionalService/listVinculoProfissionalAtivoPorDescricaoUsuario?descUsuario=<LOGIN>&descricao=%%` |
+| professionalBond | `261621` | idem (vínculo com o estabelecimento 711) |
+| idUnidadeExecutante | `2147` (RCS SOLUCOES MEDICAS S/A) | idem (vínculo 260535) |
+| tipoData | `1` = AGENDAMENTO (`2` = SOLICITAÇÃO, `3` = MARCAÇÃO) | chunk 80 `arrayTiposData` |
+| periodoInicial/Final | 00:00 BRT de hoje / do último dia do mês, em UTC (`2026-11-13T03:00:00.000Z`) | `Date.toISOString()` do front |
+
+- Sem `listaSituacoes`, a API devolveu as situações 5, 7 e 9. O volume bate com o vídeo (4.095 com um dia a mais).
+- Os ids (user/profile/company/bond/unidade) devem ser **descobertos em runtime** pelos endpoints da tabela, casando pelas
+  descrições (`COORDENADOR DE UNIDADE CMCE`, `NUCLEO ESPECIAL DE REGULACAO DE CONSULTAS E EXAMES`, `RCS SOLUCOES MEDICAS S/A`).
+  Os números acima servem de fallback/validação, porque mudam se a conta mudar.
+- Formatos no JSON: datas `AAAA-MM-DDTHH:MM:SS` (local, sem fuso); `cpf` com 11 dígitos sem máscara; `numeroCartaoSus` com 15 dígitos;
+  `idCidadao` e `idSolicitacaoProcedimento` inteiros; `situacao` inteiro.
+- O JSON também traz `sexo` e `nomeMae`, que o CSV da tela não tem.
 
 ### Critérios de aceite
 - [ ] Reimportar o mesmo CSV não cria nada (status `ignorado` ou 0 criados)
