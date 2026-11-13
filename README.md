@@ -66,9 +66,29 @@ python-dotenv, se existir. Variáveis já definidas no ambiente têm precedênci
 | `SOULMV_RETENCAO_DIAS` | `7` | CSVs mais antigos são apagados do inbox |
 | `SOULMV_USUARIO` / `SOULMV_SENHA` | — | Conta MV (Fase 2) |
 
-## Produção (cPanel / Passenger)
+## Produção (cPanel HostGator — FastCGI)
 
-- Startup file: `passenger_wsgi.py`, que aponta para `ambulatorio.wsgi.application`.
+O servidor compartilhado não tem `mod_passenger` (o "Application Manager" aparece no cPanel,
+mas não funciona). A aplicação roda via **Apache `mod_fcgid` + flup**:
+
+| Item | Local no servidor |
+|---|---|
+| URL | `https://ambulatorio.softh.com.br` |
+| Código + venv (Python 3.12 via `uv`) | `~/apps/erp-amb-softh` (`.venv`, `.env` com permissão 600) |
+| Document root | `~/ambulatorio_public` (`index.fcgi` + `.htaccess`, copiados de `deploy/cpanel/`) |
+| Dados (SQLite, media, inbox, logs, static) | `~/ambulatorio_data` |
+
+Deploy de uma nova versão (via SSH, porta 2222):
+
+```bash
+cd ~/apps/erp-amb-softh && git pull
+~/.local/bin/uv pip install --python .venv/bin/python -r requirements.txt
+.venv/bin/python manage.py migrate --noinput && .venv/bin/python manage.py collectstatic --noinput
+cp deploy/cpanel/index.fcgi ~/ambulatorio_public/index.fcgi && chmod 755 ~/ambulatorio_public/index.fcgi
+touch ~/ambulatorio_public/index.fcgi   # o mod_fcgid recarrega o processo
+```
+
+- `passenger_wsgi.py` fica para hosts com Passenger; ele se reexecuta com o `.venv` (o Passenger usa o Python do sistema).
 - `python manage.py migrate` e `python manage.py collectstatic --noinput` a cada deploy.
 - Static servido pelo WhiteNoise (`CompressedManifestStaticFilesStorage`). `MEDIA_ROOT` deve ser
   servido pelo Apache. O Django só serve media com `DEBUG=True`.

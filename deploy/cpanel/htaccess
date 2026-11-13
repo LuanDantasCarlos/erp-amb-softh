@@ -1,0 +1,9 @@
+# Copiado como .htaccess para o document root do subdomínio (deploy cPanel com mod_fcgid).
+Options +ExecCGI -Indexes
+AddHandler fcgid-script .fcgi
+
+RewriteEngine On
+# Validação do AutoSSL/Let's Encrypt continua servida pelo Apache
+RewriteRule ^\.well-known/ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ index.fcgi/$1 [QSA,L]

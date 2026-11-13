@@ -4,6 +4,17 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
 ## [Não lançado]
 
+### Deploy cPanel HostGator (13/11/2026)
+
+#### Adicionado
+- `deploy/cpanel/index.fcgi` e `deploy/cpanel/htaccess`: execução via Apache `mod_fcgid` + flup,
+  porque o servidor compartilhado não tem `mod_passenger`. Dependência `flup==1.0.3`.
+- Produção em `https://ambulatorio.softh.com.br` (Python 3.12 instalado com `uv` na pasta do usuário;
+  SQLite em `~/ambulatorio_data`).
+
+#### Alterado
+- `passenger_wsgi.py` reexecuta com o `.venv` do projeto, porque o Passenger do cPanel usa o Python do sistema.
+
 ### Fase 1 — Importador CSV Soul MV
 
 #### Adicionado
