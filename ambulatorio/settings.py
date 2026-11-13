@@ -186,6 +186,15 @@ SOULMV_LOCK_FILE = os.environ.get('SOULMV_LOCK_FILE') or None  # padrão: <INBOX
 SOULMV_RETENCAO_DIAS = env_int('SOULMV_RETENCAO_DIAS', 7)
 SOULMV_LIMITE_EXECUCAO_MIN = 50
 SOULMV_UPLOAD_MAX_BYTES = 10 * 1024 * 1024
+# Cliente HTTP (SOULMV_EXTRATOR=http). Credenciais só por env, nunca no código.
+SOULMV_USUARIO = os.environ.get('SOULMV_USUARIO', '').strip()
+SOULMV_SENHA = os.environ.get('SOULMV_SENHA', '')
+SOULMV_API_URL = os.environ.get('SOULMV_API_URL', '').strip() or 'https://regulacao.saude.es.gov.br/consultas-exames/api/'
+SOULMV_PERFIL = os.environ.get('SOULMV_PERFIL', '').strip() or 'COORDENADOR DE UNIDADE CMCE'
+SOULMV_UNIDADE_SOLICITANTE = (
+    os.environ.get('SOULMV_UNIDADE_SOLICITANTE', '').strip() or 'NUCLEO ESPECIAL DE REGULACAO DE CONSULTAS E EXAMES'
+)
+SOULMV_UNIDADE_EXECUTANTE = os.environ.get('SOULMV_UNIDADE_EXECUTANTE', '').strip() or 'RCS SOLUCOES MEDICAS S/A'
 
 # Produção
 if not DEBUG:

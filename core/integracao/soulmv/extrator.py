@@ -1,4 +1,4 @@
-"""Extração do CSV do Soul MV. O cliente HTTP real (Fase 2) implementa o mesmo Protocol."""
+"""Extração do CSV do Soul MV: arquivo local (testes/Plano C) ou cliente HTTP (`cliente_http`)."""
 from __future__ import annotations
 
 from datetime import date
@@ -38,8 +38,15 @@ class ExtratorArquivoLocal:
         return max(candidatos, key=lambda p: (p.stat().st_mtime, p.name))
 
 
+def _extrator_http() -> Extrator:
+    from .cliente_http import ExtratorHttpSoulMV  # import tardio: cliente_http importa este módulo
+
+    return ExtratorHttpSoulMV()
+
+
 EXTRATORES: Dict[str, Callable[[], Extrator]] = {
     'arquivo_local': ExtratorArquivoLocal,
+    'http': _extrator_http,
 }
 
 

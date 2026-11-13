@@ -4,6 +4,19 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
 ## [Não lançado]
 
+### Fase 2 — Cliente HTTP do Soul MV
+
+#### Adicionado
+- `core/integracao/soulmv/cliente_http.py`: `ClienteSoulMV` com:
+  - `login()`: CAS com redirects manuais e token do fragmento `#access_token=`;
+  - `descobrir_contexto()`: user, perfil, company, vínculo e unidade executante descobertos por descrição;
+  - `listar(inicio, fim)`: header `MVFor-Profile`, período em UTC, timeout de 240 s.
+- `ExtratorHttpSoulMV`, registrado como `SOULMV_EXTRATOR=http`. Grava `soulmv_<timestamp>.csv` no inbox.
+- `core/integracao/soulmv/exportacao_csv.py`: `registros_para_csv`, o mesmo CSV do export da tela.
+- Settings `SOULMV_API_URL`, `SOULMV_PERFIL`, `SOULMV_UNIDADE_SOLICITANTE` e `SOULMV_UNIDADE_EXECUTANTE`.
+- Erros de login/rede/HTTP viram `ExtracaoError` sem senha, token ou URL com ticket. Senha expirada gera alerta próprio.
+- Testes 100% mockados (o MV só é alcançável a partir do servidor).
+
 ### Deploy cPanel HostGator (13/11/2026)
 
 #### Adicionado
@@ -93,7 +106,8 @@ Os arquivos continuam no disco e agora estão no `.gitignore`:
 - `core/serializers.py:29` e `core/serializers.py:41`: `TemplateDocumentoSerializer` copia o PDF para
   `templates/<user_id>/` **relativo ao cwd**. No Passenger o cwd é imprevisível, e o upload pode cair
   dentro do diretório de código. Deve gravar em `MEDIA_ROOT`.
-- Fase 2: cliente HTTP do Soul MV (`cliente_http.py`), que depende do login do usuário.
+- Importar `sexo` e `nomeMae`, que vêm no JSON do Soul MV mas não no CSV da tela.
+- Salvar a resposta/HTML da falha de extração para diagnóstico (spec, Fase 2).
 - Alerta por e-mail em falha do job.
 - `drf_yasg` emite `DeprecationWarning` (`SWAGGER_USE_COMPAT_RENDERERS`).
 - `PyPDF2` está descontinuado. Migrar para `pypdf`.

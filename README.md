@@ -60,11 +60,15 @@ python-dotenv, se existir. Variáveis já definidas no ambiente têm precedênci
 | `LOG_DIR` | `<projeto>/logs` | Log rotativo `app.log` (só com DEBUG=False) |
 | `SECURE_SSL_REDIRECT` | `True` | Só com DEBUG=False |
 | `SECURE_HSTS_SECONDS` | `0` | Ativar depois de confirmar HTTPS estável |
-| `SOULMV_EXTRATOR` | `arquivo_local` | Origem do CSV usada pelo job |
+| `SOULMV_EXTRATOR` | `arquivo_local` | Origem do CSV usada pelo job: `http` (cliente do Soul MV, produção) ou `arquivo_local` |
 | `SOULMV_INBOX_DIR` | — | Obrigatória para o job; fora de `public_html` (LGPD) |
 | `SOULMV_LOCK_FILE` | `<INBOX>/.job_pacientes_soulmv.lock` | |
 | `SOULMV_RETENCAO_DIAS` | `7` | CSVs mais antigos são apagados do inbox |
-| `SOULMV_USUARIO` / `SOULMV_SENHA` | — | Conta MV (Fase 2) |
+| `SOULMV_USUARIO` / `SOULMV_SENHA` | — | Conta MV; obrigatórias com `SOULMV_EXTRATOR=http` |
+| `SOULMV_API_URL` | `https://regulacao.saude.es.gov.br/consultas-exames/api/` | |
+| `SOULMV_PERFIL` | `COORDENADOR DE UNIDADE CMCE` | Descrição do perfil (casada sem diferenciar caixa/espaços) |
+| `SOULMV_UNIDADE_SOLICITANTE` | `NUCLEO ESPECIAL DE REGULACAO DE CONSULTAS E EXAMES` | Estabelecimento do vínculo (company) |
+| `SOULMV_UNIDADE_EXECUTANTE` | `RCS SOLUCOES MEDICAS S/A` | Nome exato; as variantes por município não casam |
 
 ## Produção (cPanel HostGator — FastCGI)
 
@@ -118,6 +122,21 @@ python manage.py importar_pacientes_soulmv --arquivo /caminho/20261113080000.csv
 python manage.py job_pacientes_soulmv
 ```
 
+### Extração HTTP (`SOULMV_EXTRATOR=http`)
+
+`core/integracao/soulmv/cliente_http.py` reproduz o front sem navegador:
+
+1. login no CAS (`oauth2/login` → formulário → redirects seguidos à mão até `#access_token=`);
+2. descoberta dos ids em runtime (`usuario/currentUser`, lista de perfis e de vínculos), casando pelas
+   descrições configuradas;
+3. `GET solicitacao-procedimento/solicitacoes-consulta-regulador-com-vinculos` com `tipoData=1` (agendamento),
+   período hoje 00:00 → último dia do mês 00:00 (America/Sao_Paulo, enviado em UTC) e o header `MVFor-Profile`;
+4. `exportacao_csv.registros_para_csv` gera o mesmo CSV da tela, gravado como `soulmv_<timestamp>.csv` no inbox
+   (permissão 0600) e importado pelo mesmo importador.
+
+Falhas (credencial errada, senha expirada, perfil/unidade não encontrados, HTTP ≠ 200) viram execução com
+`erro` em `ExecucaoImportacao`. Senha, token e ticket do CAS nunca aparecem em mensagem ou log.
+
 Cron sugerido (cPanel): `0 * * * * cd ~/app && ~/virtualenv/<app>/<versão>/bin/python manage.py job_pacientes_soulmv`
 
 ### API (Plano C)
@@ -142,7 +161,8 @@ curl -H "Authorization: Bearer $TOKEN" -F arquivo=@20261113080000.csv https://se
 
 - `ambulatorio/`: settings (por env), `settings_test.py`, urls, wsgi
 - `core/`: modelos, views (site e API), admin, templates de documento
-- `core/integracao/soulmv/`: `leitor` (CSV), `importador` (insert-only), `periodo`, `extrator`, `lock`, `job`
+- `core/integracao/soulmv/`: `cliente_http` (Soul MV), `exportacao_csv`, `leitor` (CSV), `importador` (insert-only),
+  `periodo`, `extrator`, `lock`, `job`
 - `core/management/commands/`: `importar_pacientes_soulmv`, `job_pacientes_soulmv`
 - `core/tests/`: testes pytest e fixtures sintéticas
 - `static/`: CSS, JS e modelos-base de documentos (`templates_documentos/`, `Texto/`)
