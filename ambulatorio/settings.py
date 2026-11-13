@@ -164,6 +164,11 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
 }
 
+# Autenticação do site (sem isto o Django redireciona para /accounts/profile/, inexistente)
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = 'login'
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),

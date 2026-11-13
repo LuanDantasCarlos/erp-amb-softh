@@ -100,3 +100,10 @@ def test_passenger_wsgi():
     import passenger_wsgi
 
     assert callable(passenger_wsgi.application)
+
+
+def test_login_sem_next_redireciona_para_home(client, django_user_model):
+    django_user_model.objects.create_user(username='u_login', password='s3nha-forte-123')
+    resp = client.post('/login/', {'username': 'u_login', 'password': 's3nha-forte-123'}, secure=True)
+    assert resp.status_code == 302
+    assert resp.url == '/'
