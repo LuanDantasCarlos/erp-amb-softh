@@ -4,6 +4,29 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
 ## [Não lançado]
 
+### Pacientes por data do atendimento
+
+#### Adicionado
+- Lista de pacientes:
+  - filtro **Data do atendimento** (`?data=AAAA-MM-DD`) com atalhos Hoje/Amanhã. Mostra só quem tem
+    agendamento no dia local (America/Sao_Paulo), ordenado pelo primeiro horário do dia e depois pelo nome,
+    sem duplicar paciente;
+  - colunas **Atendimento** e **Item de agendamento**. Com o filtro, mostram o primeiro agendamento do dia;
+    sem filtro, o próximo agendamento a partir de agora ou, se não houver, o último.
+- Detalhe do paciente: seção **Agendamentos** (data/hora, item, solicitação), da mais recente para a mais
+  antiga, com destaque para a de hoje. Mostra também CNS, código cidadão, origem e nome social.
+- Gerar documento: o select de pacientes mostra "atendimento hoje HH:MM" quando o paciente tem
+  agendamento no dia.
+- `core/agenda.py`: subqueries correlacionadas sobre o índice `(paciente, data_agenda)`.
+  - A lista faz um número constante de queries (testado com `django_assert_num_queries`).
+  - O dia é filtrado por intervalo `[00:00, 00:00 do dia seguinte)`, e não por `__date`, para usar o índice.
+
+#### Alterado
+- Busca da lista aceita também CNS, código cidadão, nome social e CPF digitado sem máscara.
+- Paginação: 25 por página, mantendo todos os filtros na querystring, que agora é escapada.
+- Removidos da lista o filtro "Estado" e a coluna "Cidade/UF": os campos não existem no modelo e
+  apareciam sempre vazios.
+
 ### Fase 2 — Cliente HTTP do Soul MV
 
 #### Adicionado

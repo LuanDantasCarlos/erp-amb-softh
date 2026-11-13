@@ -32,7 +32,7 @@
                                 <option value="" {% if not form.paciente_id.value %}selected{% endif %}>Selecione um paciente</option>
                                 {% for paciente in pacientes %}
                                 <option value="{{ paciente.id }}" {% if form.paciente_id.value == paciente.id|stringformat:"i" %}selected{% endif %}>
-                                    {{ paciente.nome }} - {{ paciente.cpf|default:"sem CPF" }}
+                                    {{ paciente.nome }} - {{ paciente.cpf|default:"sem CPF" }}{% if paciente.atendimento %} — atendimento hoje {{ paciente.atendimento|date:"H:i" }}{% endif %}
                                 </option>
                                 {% endfor %}
                             </select>

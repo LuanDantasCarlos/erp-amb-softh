@@ -7,6 +7,9 @@ hora em hora do export da Central de Marcação do Soul MV.
 ## Funcionalidades
 
 - Cadastro de pacientes: manual ou importado do Soul MV, nunca sobrescrito pela importação
+- Localização de pacientes pela data do atendimento: filtro na lista (`/pacientes/?data=AAAA-MM-DD`, atalhos
+  Hoje/Amanhã), colunas de atendimento e item de agendamento, e histórico de agendamentos no detalhe.
+  Busca por nome, CPF (com ou sem máscara), CNS, código cidadão ou e-mail.
 - Templates de documento em PDF com campos posicionados e preenchimento automático com dados do paciente
 - Geração e histórico de documentos
 - Importação insert-only de pacientes e agendamentos do Soul MV, por command, job horário ou API

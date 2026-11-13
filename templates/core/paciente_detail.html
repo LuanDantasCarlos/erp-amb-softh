@@ -65,12 +65,74 @@
                         <p class="mb-0 fw-bold">{{ paciente.telefone|default:"Não informado" }}</p>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row mb-2">
                     <div class="col-md-12">
                         <p class="mb-1 text-muted small">Email</p>
                         <p class="mb-0 fw-bold">{{ paciente.email|default:"Não informado" }}</p>
                     </div>
                 </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <p class="mb-1 text-muted small">CNS</p>
+                        <p class="mb-0 fw-bold">{{ paciente.cns|default:"Não informado" }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="mb-1 text-muted small">Código cidadão</p>
+                        <p class="mb-0 fw-bold">{{ paciente.codigo_cidadao|default:"Não informado" }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="mb-1 text-muted small">Origem</p>
+                        <p class="mb-0 fw-bold">{{ paciente.get_origem_display }}</p>
+                    </div>
+                </div>
+                {% if paciente.nome_social %}
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <p class="mb-1 text-muted small">Nome social</p>
+                        <p class="mb-0 fw-bold">{{ paciente.nome_social }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Agendamentos -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Agendamentos</h5>
+            </div>
+            <div class="card-body">
+                {% with hoje_iso=hoje|date:"Y-m-d" %}
+                {% if agendamentos %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Data/hora</th>
+                                <th>Item de agendamento</th>
+                                <th>Solicitação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for agendamento in agendamentos %}
+                            {% with dia=agendamento.data_agenda|date:"Y-m-d" %}
+                            <tr{% if dia == hoje_iso %} class="table-warning fw-bold"{% endif %}>
+                                <td class="text-nowrap">
+                                    {{ agendamento.data_agenda|date:"d/m/Y H:i"|default:"-" }}
+                                    {% if dia == hoje_iso %}<span class="badge bg-warning text-dark ms-1">Hoje</span>{% endif %}
+                                </td>
+                                <td>{{ agendamento.item_agendamento|default:"-" }}</td>
+                                <td>{{ agendamento.solicitacao }}</td>
+                            </tr>
+                            {% endwith %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">Nenhum agendamento registrado.</p>
+                {% endif %}
+                {% endwith %}
             </div>
         </div>
 

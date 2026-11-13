@@ -6,7 +6,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.template import Template as DjangoTemplate, Context
-from django.db.models import Q
+from django.db.models import F, Q
+from django.utils import timezone
+from datetime import date, timedelta
 from django.http import HttpResponse, FileResponse
 import os
 from django.http import JsonResponse
@@ -21,6 +23,7 @@ from .models import Paciente, TemplateDocumento, Documento, CampoTemplateDocumen
 from .forms import GerarDocumentoForm,TemplateDocumentoForm, PacienteForm
 from core.serializers import GerarDocumentoSerializer
 from .utils import gerar_documento_pdf, calcular_maxchars_textarea
+from .agenda import anotar_atendimento_no_dia, anotar_proximo_atendimento, filtrar_atendimento_no_dia
 
 
 @login_required
@@ -49,54 +52,76 @@ def home(request):
 
 
 # Views de Pacientes
+PACIENTES_POR_PAGINA = 25
+
+
+def _parse_data_param(valor: str):
+    try:
+        return date.fromisoformat(valor) if valor else None
+    except ValueError:
+        return None
+
+
+def _filtro_busca(search: str) -> Q:
+    filtro = (
+        Q(nome__icontains=search)
+        | Q(nome_social__icontains=search)
+        | Q(cpf__icontains=search)
+        | Q(cns__icontains=search)
+        | Q(codigo_cidadao__icontains=search)
+        | Q(email__icontains=search)
+        | Q(celular__icontains=search)
+    )
+    digitos = ''.join(ch for ch in search if ch.isdigit())
+    if len(digitos) == 11 and digitos == search.strip():
+        # CPF digitado sem máscara: o banco guarda 000.000.000-00.
+        filtro |= Q(cpf=f'{digitos[:3]}.{digitos[3:6]}.{digitos[6:9]}-{digitos[9:]}')
+    return filtro
+
+
 @login_required
 def paciente_list(request):
     """
-    Lista de pacientes
+    Lista de pacientes, com filtro opcional pela data do atendimento (Agendamento.data_agenda).
     """
-    # Filtros
-    search = request.GET.get('search', '')
-    # cidade = request.GET.get('cidade', '')
-    # estado = request.GET.get('estado', '')
+    search = request.GET.get('search', '').strip()
     ativo = request.GET.get('ativo', '')
-    
-    # Consulta base
+    data_param = request.GET.get('data', '').strip()
+    data_filtro = _parse_data_param(data_param)
+    if data_param and data_filtro is None:
+        messages.warning(request, 'Data do atendimento inválida; filtro ignorado.')
+
     queryset = Paciente.objects.all()
-    
-    # Aplicar filtros
     if search:
-        queryset = queryset.filter(
-            Q(nome__icontains=search) | 
-            Q(cpf__icontains=search) | 
-            Q(email__icontains=search) |
-            Q(celular__icontains=search)
-        )
-    
-    # if cidade:
-    #     queryset = queryset.filter(cidade=cidade)
-    
-    # if estado:
-    #     queryset = queryset.filter(estado=estado)
-    
-    if ativo:
+        queryset = queryset.filter(_filtro_busca(search))
+    if ativo in ('0', '1'):
         queryset = queryset.filter(ativo=ativo == '1')
-    
-    # Ordenação
-    queryset = queryset.order_by('nome')
-    
-    # Paginação
-    paginator = Paginator(queryset, 10)
-    page_number = request.GET.get('page', 1)
-    pacientes = paginator.get_page(page_number)
-    
-    # Dados para filtros
-    # cidades = Paciente.objects.values_list('cidade', flat=True).distinct().order_by('cidade')
-    # estados = Paciente.objects.values_list('estado', flat=True).distinct().order_by('estado')
-    
+
+    if data_filtro:
+        queryset = filtrar_atendimento_no_dia(queryset, data_filtro)
+    else:
+        queryset = anotar_proximo_atendimento(queryset).order_by('nome', 'pk')
+
+    paginator = Paginator(queryset, PACIENTES_POR_PAGINA)
+    pacientes = paginator.get_page(request.GET.get('page', 1))
+
+    filtros = request.GET.copy()
+    filtros.pop('page', None)
+    filtros_sem_data = filtros.copy()
+    filtros_sem_data.pop('data', None)
+    hoje = timezone.localdate()
+
     context = {
         'pacientes': pacientes,
+        'search': search,
+        'ativo': ativo,
+        'data_filtro': data_filtro,
+        'hoje': hoje,
+        'amanha': hoje + timedelta(days=1),
+        'querystring': filtros.urlencode(),
+        'querystring_sem_data': filtros_sem_data.urlencode(),
     }
-    
+
     return render(request, 'core/paciente_list.html', context)
 
 
@@ -146,11 +171,14 @@ def paciente_detail(request, pk):
     # Estatísticas
     total_documentos = Documento.objects.filter(paciente=paciente).count()
     ultimo_documento = Documento.objects.filter(paciente=paciente).order_by('-data_emissao').first()
-    
+    agendamentos = paciente.agendamentos.order_by(F('data_agenda').desc(nulls_last=True), '-pk')
+
     context = {
         'paciente': paciente,
         'total_documentos': total_documentos,
         'ultimo_documento': ultimo_documento,
+        'agendamentos': agendamentos,
+        'hoje': timezone.localdate(),
     }
     
     return render(request, 'core/paciente_detail.html', context)
@@ -361,6 +389,11 @@ def documento_download(request, pk):
         messages.error(request, f'Erro ao baixar o arquivo: {str(e)}')
         return redirect('documento_detail', pk=documento.id)
 
+def _pacientes_para_selecao():
+    """Pacientes ativos para o select, anotados com o atendimento de hoje (uma única query)."""
+    return anotar_atendimento_no_dia(Paciente.objects.filter(ativo=True), timezone.localdate()).order_by('nome')
+
+
 @login_required
 def gerar_documento(request):
     initial = {}
@@ -439,7 +472,7 @@ def gerar_documento(request):
                         messages.error(request, 'O template selecionado não possui um arquivo PDF associado.')
                         return render(request, 'core/gerar_documento.html', {
                             'form': form,
-                            'pacientes': Paciente.objects.filter(ativo=True),
+                            'pacientes': _pacientes_para_selecao(),
                             'templates': TemplateDocumento.objects.filter(ativo=True),
                             'from_url': from_url,
                         })
@@ -466,7 +499,7 @@ def gerar_documento(request):
     else:
         form = GerarDocumentoForm(initial=initial)
 
-    pacientes = Paciente.objects.filter(ativo=True).order_by('nome')
+    pacientes = _pacientes_para_selecao()
     templates = TemplateDocumento.objects.filter(ativo=True).order_by('nome')
 
     context = {
