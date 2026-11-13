@@ -261,5 +261,5 @@ def test_documento_de_paciente_importado_preenche_nome_cpf_nascimento(settings, 
     texto = PdfReader(buffer).pages[0].extract_text()
     assert 'FULANO DE TAL' in texto
     assert '000.123.456-78' in texto
-    assert '1950-02-01' in texto
+    assert '01/02/1950' in texto  # spec templates-oftalmologia §3.4: datas em dd/mm/aaaa
     assert 'None' not in texto

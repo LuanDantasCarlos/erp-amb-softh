@@ -10,7 +10,10 @@ hora em hora do export da Central de Marcação do Soul MV.
 - Localização de pacientes pela data do atendimento: filtro na lista (`/pacientes/?data=AAAA-MM-DD`, atalhos
   Hoje/Amanhã), colunas de atendimento e item de agendamento, e histórico de agendamentos no detalhe.
   Busca por nome, CPF (com ou sem máscara), CNS, código cidadão ou e-mail.
-- Templates de documento em PDF com campos posicionados e preenchimento automático com dados do paciente
+- Templates de documento em PDF com campos posicionados e preenchimento automático (paciente, médico,
+  estabelecimento, data do atendimento), sempre editável antes de gerar
+- Documentos de oftalmologia gerados por código: BPA-I (um por procedimento SIGTAP marcado), Prescrição de
+  Óculos e Receituário de Colírios em 2 vias
 - Geração e histórico de documentos
 - Importação insert-only de pacientes e agendamentos do Soul MV, por command, job horário ou API
 - API REST com autenticação JWT e documentação Swagger/Redoc
@@ -72,6 +75,8 @@ python-dotenv, se existir. Variáveis já definidas no ambiente têm precedênci
 | `SOULMV_PERFIL` | `COORDENADOR DE UNIDADE CMCE` | Descrição do perfil (casada sem diferenciar caixa/espaços) |
 | `SOULMV_UNIDADE_SOLICITANTE` | `NUCLEO ESPECIAL DE REGULACAO DE CONSULTAS E EXAMES` | Estabelecimento do vínculo (company) |
 | `SOULMV_UNIDADE_EXECUTANTE` | `RCS SOLUCOES MEDICAS S/A` | Nome exato; as variantes por município não casam |
+| `ESTABELECIMENTO_NOME` / `_CNES` | `CRE- METROPOLITANO` / `5604613` | Impressos nos documentos |
+| `ESTABELECIMENTO_NUCLEO` / `_UNIDADE` | `Núcleo Regional de Especialidade de Vitória` / `Unidade de Oftalmologia` | |
 
 ## Produção (cPanel HostGator — FastCGI)
 
@@ -102,6 +107,27 @@ touch ~/ambulatorio_public/index.fcgi   # o mod_fcgid recarrega o processo
 - Valide com `python manage.py check --deploy`. O único aviso esperado é `security.W004`
   (HSTS), até `SECURE_HSTS_SECONDS` ser ativado.
 - O banco SQLite e `media/` são dados e não vão no git: migre-os junto com o deploy.
+
+## Documentos de oftalmologia
+
+Especificação: [`docs/specs/templates-oftalmologia.md`](docs/specs/templates-oftalmologia.md).
+
+```bash
+python manage.py importar_procedimentos_sigtap          # 146 procedimentos (SIGTAP 11/2026), upsert por código
+python manage.py instalar_templates_oftalmo             # (re)gera os PDFs base e os campos; idempotente
+```
+
+- Médicos: cadastrar no admin (`Médico`), ligando ao `Usuário` quando o médico emite os próprios documentos.
+  Nunca versionar dados de médicos.
+- Layouts em `core/documentos/layouts/` (reportlab): o mesmo código desenha o PDF base e devolve as posições.
+  Depois de mudar um layout, rode `instalar_templates_oftalmo` de novo.
+- Fontes automáticas em `CampoTemplateDocumento.atributo_paciente`: `paciente.<attr>` (ou só `<attr>`),
+  `paciente.nascimento_curto`, `paciente.telefone_contato`, `medico.<attr>`, `medico.assinatura`,
+  `estabelecimento.nome|cnes|nucleo|unidade`, `atendimento.data|mes_ano`, `sistema.hoje`.
+  `validacoes` aceita `padrao` (valor inicial) e `copiar_de` (nome de outro campo).
+- Gerar documento: selects de Médico (obrigatório quando o template usa `medico.*`) e Data do atendimento
+  (padrão: agendamento de hoje, senão o próximo, senão hoje). Os campos automáticos chegam preenchidos
+  (`/valores_automaticos/`) e o valor digitado sempre vence.
 
 ## Importação Soul MV
 
@@ -166,7 +192,10 @@ curl -H "Authorization: Bearer $TOKEN" -F arquivo=@20261113080000.csv https://se
 - `core/`: modelos, views (site e API), admin, templates de documento
 - `core/integracao/soulmv/`: `cliente_http` (Soul MV), `exportacao_csv`, `leitor` (CSV), `importador` (insert-only),
   `periodo`, `extrator`, `lock`, `job`
-- `core/management/commands/`: `importar_pacientes_soulmv`, `job_pacientes_soulmv`
+- `core/documentos/`: `fontes` (valores automáticos), `engine` (overlay), `layouts/` (BPA-I, prescrição,
+  receituário), `instalacao`, `sigtap`, `formulario`; `assets/` (logos) e `dados/` (CSV do SIGTAP)
+- `core/management/commands/`: `importar_pacientes_soulmv`, `job_pacientes_soulmv`,
+  `importar_procedimentos_sigtap`, `instalar_templates_oftalmo`
 - `core/tests/`: testes pytest e fixtures sintéticas
 - `static/`: CSS, JS e modelos-base de documentos (`templates_documentos/`, `Texto/`)
 - `templates/`: templates HTML

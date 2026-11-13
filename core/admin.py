@@ -2,7 +2,7 @@
 Admin configuration for the core app
 """
 from django.contrib import admin
-from .models import Agendamento, Documento, ExecucaoImportacao, Paciente, TemplateDocumento
+from .models import Agendamento, Documento, ExecucaoImportacao, Medico, Paciente, Procedimento, TemplateDocumento
 
 
 @admin.register(Paciente)
@@ -71,7 +71,7 @@ class DocumentoAdmin(admin.ModelAdmin):
             'fields': ('nome', 'paciente', 'template', 'arquivo')
         }),
         ('Metadados', {
-            'fields': ('data_emissao', 'emitido_por', 'observacoes')
+            'fields': ('data_emissao', 'emitido_por', 'medico', 'data_atendimento', 'observacoes')
         }),
     )
     
@@ -111,3 +111,18 @@ class ExecucaoImportacaoAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(Medico)
+class MedicoAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'crm', 'rqe', 'cbo', 'usuario', 'ativo')
+    list_filter = ('ativo',)
+    search_fields = ('nome', 'crm', 'rqe', 'cns', 'cpf', 'usuario__username')
+    raw_id_fields = ('usuario',)
+
+
+@admin.register(Procedimento)
+class ProcedimentoAdmin(admin.ModelAdmin):
+    list_display = ('codigo', 'nome', 'grupo', 'instrumentos', 'ativo')
+    list_filter = ('ativo', 'grupo')
+    search_fields = ('codigo', 'nome')

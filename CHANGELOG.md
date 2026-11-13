@@ -4,6 +4,43 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
 ## [Não lançado]
 
+### Templates de documentos de oftalmologia
+
+#### Adicionado
+- Models `Medico` (CNS/CPF normalizados, `assinatura`, FK opcional para `User`) e `Procedimento` (SIGTAP).
+  `Documento.medico` e `Documento.data_atendimento` (nullable). Migração aditiva `0006`.
+- Command `importar_procedimentos_sigtap [--csv]`: upsert por código. O padrão é o CSV do repositório
+  (146 procedimentos).
+- Command `instalar_templates_oftalmo` (idempotente): gera os PDFs base em `MEDIA_ROOT/templates/oftalmologia/`
+  e cria ou atualiza os templates e campos pelo nome.
+  - Campo que saiu do layout é excluído; se já foi preenchido em algum documento, é só inativado.
+  - Desativa "Receituario Colirio - Timolol" se ele não tiver documentos emitidos.
+- Layouts por código (`core/documentos/layouts/`): BPA-I, Prescrição de Óculos e Receituário de Colírios
+  2 vias (A4 paisagem).
+- `core/documentos/fontes.py`: `resolver_valor` com prefixos `paciente.`, `medico.`, `estabelecimento.`,
+  `atendimento.` e `sistema.`. Sem prefixo, a chave continua sendo atributo do paciente.
+- Settings `ESTABELECIMENTO_NOME/CNES/NUCLEO/UNIDADE`.
+- Engine (`core/documentos/engine.py`):
+  - tipo `procedimentos`: uma página por procedimento marcado, com QTD;
+  - tipo `radio`;
+  - checkbox com várias posições por opção (2 vias) e `implica` (OD/OE marcam o medicamento);
+  - texto com `width` reduz a fonte até 7pt e corta sem estourar a caixa;
+  - `align`, texto multilinha, `validacoes.padrao` e `validacoes.copiar_de`.
+- Gerar documento:
+  - selects Médico e Data do atendimento;
+  - endpoint `valores_automaticos`: campos automáticos pré-preenchidos e editáveis;
+  - lista de procedimentos agrupada, com busca.
+  - Médico pré-selecionado: o ligado ao usuário; senão o último usado na sessão.
+
+#### Alterado
+- select/radio imprimem o **texto** da opção (antes imprimiam o id).
+- Datas automáticas saem em `dd/mm/aaaa` também nos templates antigos (antes `aaaa-mm-dd`).
+- Campo apagado de propósito no formulário fica vazio no PDF (antes voltava o valor do paciente).
+- `CampoPreenchidoDocumento` grava o valor final usado no PDF, já com os automáticos; listas e
+  procedimentos em JSON.
+- Erro ao gerar documento: a mensagem não expõe a exceção (fica no log), e `print` virou `logging`.
+- Removido o flatpickr (CDN), que não era usado.
+
 ### Pacientes por data do atendimento
 
 #### Adicionado
@@ -130,6 +167,8 @@ Os arquivos continuam no disco e agora estão no `.gitignore`:
   `templates/<user_id>/` **relativo ao cwd**. No Passenger o cwd é imprevisível, e o upload pode cair
   dentro do diretório de código. Deve gravar em `MEDIA_ROOT`.
 - Importar `sexo` e `nomeMae`, que vêm no JSON do Soul MV mas não no CSV da tela.
+  O campo "Nome da Mãe" do BPA-I já usa `paciente.nome_mae` e passa a ser preenchido sozinho quando
+  o atributo existir.
 - Salvar a resposta/HTML da falha de extração para diagnóstico (spec, Fase 2).
 - Alerta por e-mail em falha do job.
 - `drf_yasg` emite `DeprecationWarning` (`SWAGGER_USE_COMPAT_RENDERERS`).

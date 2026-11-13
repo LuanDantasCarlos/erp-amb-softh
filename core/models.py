@@ -111,6 +111,83 @@ class ExecucaoImportacao(models.Model):
         return f"{self.iniciado_em:%d/%m/%Y %H:%M} - {self.status}"
 
 
+def _somente_digitos(valor):
+    return ''.join(ch for ch in str(valor or '') if ch.isdigit())
+
+
+class Medico(BaseModel):
+    """Profissional que assina os documentos. Dados cadastrados em produção (nunca em fixture)."""
+
+    nome = models.CharField(_('Nome'), max_length=255)
+    crm = models.CharField(
+        _('CRM'), max_length=100, help_text=_('Texto livre; pode ter vários, ex.: "00000-MG / 00000-ES".')
+    )
+    rqe = models.CharField(_('RQE'), max_length=50, blank=True, null=True)
+    cns = models.CharField(_('CNS'), max_length=15, blank=True, null=True, help_text=_('15 dígitos.'))
+    cpf = models.CharField(_('CPF'), max_length=14, blank=True, null=True)
+    cbo = models.CharField(_('CBO'), max_length=6, default='225265', help_text=_('225265 = médico oftalmologista.'))
+    especialidade_exibicao = models.CharField(
+        _('Especialidade (exibição)'), max_length=100, default='Médico(a) Oftalmologista'
+    )
+    ativo = models.BooleanField(_('Ativo'), default=True)
+    usuario = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name='medicos', verbose_name=_('Usuário')
+    )
+
+    class Meta:
+        verbose_name = _('Médico')
+        verbose_name_plural = _('Médicos')
+        ordering = ['nome']
+
+    def __str__(self):
+        return f"{self.nome} - CRM {self.crm}"
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        erros = {}
+        cns = _somente_digitos(self.cns)
+        if cns and len(cns) != 15:
+            erros['cns'] = _('O CNS deve ter 15 dígitos.')
+        cpf = _somente_digitos(self.cpf)
+        if cpf and len(cpf) > 11:
+            erros['cpf'] = _('O CPF deve ter 11 dígitos.')
+        if erros:
+            raise ValidationError(erros)
+
+    def save(self, *args, **kwargs):
+        self.cns = _somente_digitos(self.cns) or None
+        cpf = _somente_digitos(self.cpf)
+        if cpf and len(cpf) <= 11:
+            cpf = cpf.zfill(11)
+            self.cpf = f'{cpf[:3]}.{cpf[3:6]}.{cpf[6:9]}-{cpf[9:]}'
+        else:
+            self.cpf = cpf or None
+        super().save(*args, **kwargs)
+
+    @property
+    def assinatura(self):
+        """Duas linhas: "Dr(a). NOME" e "CRM: ..."."""
+        return f"Dr(a). {self.nome}\nCRM: {self.crm}"
+
+
+class Procedimento(BaseModel):
+    """Procedimento do SIGTAP (catálogo importado por `importar_procedimentos_sigtap`)."""
+
+    codigo = models.CharField(_('Código'), max_length=14, unique=True, help_text=_('Formato 00.00.00.000-0'))
+    nome = models.CharField(_('Nome'), max_length=255)
+    grupo = models.CharField(_('Grupo'), max_length=150, blank=True)
+    instrumentos = models.CharField(_('Instrumentos de registro'), max_length=100, blank=True)
+    ativo = models.BooleanField(_('Ativo'), default=True)
+
+    class Meta:
+        verbose_name = _('Procedimento')
+        verbose_name_plural = _('Procedimentos')
+        ordering = ['grupo', 'nome']
+
+    def __str__(self):
+        return f"{self.codigo} - {self.nome}"
+
+
 def template_upload_path(instance, filename):
     """Define o caminho para upload do template PDF."""
     ext = filename.split('.')[-1]
@@ -162,6 +239,8 @@ class CampoTemplateDocumento(BaseModel):
         ('assinatura', _('Assinatura')),
         ('imagem', _('Imagem')),
         ('label', _('Texto Fixo')),
+        ('radio', _('Opção única (radio)')),
+        ('procedimentos', _('Procedimentos (SIGTAP)')),
     )
 
     template = models.ForeignKey(
@@ -240,7 +319,7 @@ class CampoTemplateDocumento(BaseModel):
         Ao salvar, garante que cada opção (se for select ou checkbox) tem um 'id' único.
         """
         import uuid
-        if self.tipo_campo in ['select', 'checkbox'] and isinstance(self.opcoes, list):
+        if self.tipo_campo in ['select', 'checkbox', 'radio'] and isinstance(self.opcoes, list):
             novas_opcoes = []
             for idx, opc in enumerate(self.opcoes):
                 if isinstance(opc, dict):
@@ -277,6 +356,10 @@ class Documento(BaseModel):
     data_emissao = models.DateField(_('Data de Emissão'), auto_now_add=True)
     emitido_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, verbose_name=_('Emitido por'))
     observacoes = models.TextField(_('Observações'), blank=True, null=True)
+    medico = models.ForeignKey(
+        Medico, on_delete=models.SET_NULL, null=True, blank=True, related_name='documentos', verbose_name=_('Médico')
+    )
+    data_atendimento = models.DateField(_('Data do atendimento'), null=True, blank=True)
 
     class Meta:
         verbose_name = _('Documento')

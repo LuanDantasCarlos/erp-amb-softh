@@ -178,6 +178,14 @@ SIMPLE_JWT = {
 
 DOCUMENT_STORAGE_PATH = os.path.join(MEDIA_ROOT, 'documentos')
 
+# Estabelecimento impresso nos documentos (docs/specs/templates-oftalmologia.md §3.3)
+ESTABELECIMENTO_NOME = os.environ.get('ESTABELECIMENTO_NOME', '').strip() or 'CRE- METROPOLITANO'
+ESTABELECIMENTO_CNES = os.environ.get('ESTABELECIMENTO_CNES', '').strip() or '5604613'
+ESTABELECIMENTO_NUCLEO = (
+    os.environ.get('ESTABELECIMENTO_NUCLEO', '').strip() or 'Núcleo Regional de Especialidade de Vitória'
+)
+ESTABELECIMENTO_UNIDADE = os.environ.get('ESTABELECIMENTO_UNIDADE', '').strip() or 'Unidade de Oftalmologia'
+
 # Integração Soul MV (docs/specs/job-importacao-soulmv.md)
 SOULMV_EXTRATOR = os.environ.get('SOULMV_EXTRATOR', 'arquivo_local')
 # Pasta de entrada dos CSVs: deve ficar fora de public_html/MEDIA_ROOT/static (LGPD).

@@ -17,7 +17,7 @@
     <div class="card-body">
         <form method="post" novalidate>
             {% csrf_token %}
-            
+
             <!-- Seleção de Paciente e Template -->
             <div class="card mb-4">
                 <div class="card-header bg-primary text-white">
@@ -27,11 +27,11 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label for="id_paciente_id" class="form-label">Paciente*</label>
-                            <select name="paciente_id" id="id_paciente_id" 
+                            <select name="paciente_id" id="id_paciente_id"
                                     class="form-select {% if form.paciente_id.errors %}is-invalid{% endif %}" required>
                                 <option value="" {% if not form.paciente_id.value %}selected{% endif %}>Selecione um paciente</option>
                                 {% for paciente in pacientes %}
-                                <option value="{{ paciente.id }}" {% if form.paciente_id.value == paciente.id|stringformat:"i" %}selected{% endif %}>
+                                <option value="{{ paciente.id }}" {% if form.paciente_id.value|stringformat:"s" == paciente.id|stringformat:"i" %}selected{% endif %}>
                                     {{ paciente.nome }} - {{ paciente.cpf|default:"sem CPF" }}{% if paciente.atendimento %} — atendimento hoje {{ paciente.atendimento|date:"H:i" }}{% endif %}
                                 </option>
                                 {% endfor %}
@@ -42,14 +42,14 @@
                             </div>
                             {% endif %}
                         </div>
-                        
+
                         <div class="col-md-6">
                             <label for="id_template_id" class="form-label">Template*</label>
-                            <select name="template_id" id="id_template_id" 
+                            <select name="template_id" id="id_template_id"
                                     class="form-select {% if form.template_id.errors %}is-invalid{% endif %}" required>
                                 <option value="" {% if not form.template_id.value %}selected{% endif %}>Selecione um template</option>
                                 {% for template in templates %}
-                                <option value="{{ template.id }}" {% if form.template_id.value == template.id|stringformat:"i" %}selected{% endif %}>
+                                <option value="{{ template.id }}" {% if form.template_id.value|stringformat:"s" == template.id|stringformat:"i" %}selected{% endif %}>
                                     {{ template.nome }}
                                 </option>
                                 {% endfor %}
@@ -60,11 +60,31 @@
                             </div>
                             {% endif %}
                         </div>
-                        
+
+                        <div class="col-md-6">
+                            <label for="id_medico_id" class="form-label">Médico<span id="medico-obrigatorio" class="d-none">*</span></label>
+                            <select name="medico_id" id="id_medico_id" class="form-select">
+                                <option value="">Selecione o médico</option>
+                                {% for medico in medicos %}
+                                <option value="{{ medico.id }}" {% if medico_id_selecionado == medico.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ medico.nome }} - CRM {{ medico.crm }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text" id="medico-ajuda"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="id_data_atendimento" class="form-label">Data do atendimento</label>
+                            <input type="date" name="data_atendimento" id="id_data_atendimento" class="form-control"
+                                   value="{{ data_atendimento_selecionada }}">
+                            <div class="form-text">Padrão: agendamento do paciente hoje; senão o próximo; senão hoje.</div>
+                        </div>
+
                         <div class="col-md-12">
                             <label for="id_nome_documento" class="form-label">Nome do Documento*</label>
-                            <input type="text" name="nome_documento" id="id_nome_documento" 
-                                   class="form-control {% if form.nome_documento.errors %}is-invalid{% endif %}" 
+                            <input type="text" name="nome_documento" id="id_nome_documento"
+                                   class="form-control {% if form.nome_documento.errors %}is-invalid{% endif %}"
                                    value="{{ form.nome_documento.value|default:'' }}" required>
                             {% if form.nome_documento.errors %}
                             <div class="invalid-feedback">
@@ -72,11 +92,11 @@
                             </div>
                             {% endif %}
                         </div>
-                        
+
                         <div class="col-md-12">
                             <label for="id_observacoes" class="form-label">Observações</label>
-                            <textarea name="observacoes" id="id_observacoes" 
-                                      class="form-control {% if form.observacoes.errors %}is-invalid{% endif %}" 
+                            <textarea name="observacoes" id="id_observacoes"
+                                      class="form-control {% if form.observacoes.errors %}is-invalid{% endif %}"
                                       rows="3">{{ form.observacoes.value|default:'' }}</textarea>
                             {% if form.observacoes.errors %}
                             <div class="invalid-feedback">
@@ -90,7 +110,7 @@
 
             <!-- Campos do Documento Dinâmicos (injetados pelo JS) -->
             <div id="campos-documento-container"></div>
-            
+
             <!-- Visualização prévia (se aplicável) -->
             {% if selected_template and selected_paciente %}
             <div class="card mb-4">
@@ -104,7 +124,7 @@
                 </div>
             </div>
             {% endif %}
-            
+
             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                 <a href="{% if from_url %}{{ from_url }}{% else %}{% url 'home' %}{% endif %}" class="btn btn-secondary me-md-2">Cancelar</a>
                 <button type="submit" name="preview" class="btn btn-info me-md-2">
@@ -121,213 +141,283 @@
 <!-- Informativo -->
 <div class="alert alert-info mt-4">
     <h5 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Como funciona</h5>
-    <p>O documento será gerado em formato PDF baseado no template selecionado. 
-       Os campos como <code>{{ paciente.nome }}</code> serão substituídos automaticamente pelos dados do paciente.</p>
-    <hr>
-    <p class="mb-0">Após gerar o documento, você poderá visualizá-lo, baixá-lo ou enviá-lo por email.</p>
+    <p>O documento será gerado em PDF a partir do template selecionado. Os campos automáticos (paciente, médico,
+       estabelecimento e data do atendimento) aparecem preenchidos e podem ser editados: o valor digitado é o
+       que vai para o documento.</p>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<!-- Inclua o CSS e JS do flatpickr no seu HTML -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const URL_CAMPOS = '/api/campos_template_json/';
+    const URL_AUTOMATICOS = '{% url "valores_automaticos" %}';
+
     const templateSelect = document.getElementById('id_template_id');
     const pacienteSelect = document.getElementById('id_paciente_id');
+    const medicoSelect = document.getElementById('id_medico_id');
+    const dataInput = document.getElementById('id_data_atendimento');
     const nomeDocumentoInput = document.getElementById('id_nome_documento');
     const camposContainer = document.getElementById('campos-documento-container');
 
-    let dadosPaciente = {};
+    let campos = [];
+    let editados = new Set();          // ids de campo que o usuário alterou: o automático não sobrescreve
+    let dataEditada = Boolean(dataInput.value);
+    let requisicao = 0;
 
-    function renderCampos(campos) {
+    function esc(valor) {
+        return String(valor === undefined || valor === null ? '' : valor)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function semAcento(texto) {
+        return String(texto || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+    }
+
+    function opcoesDe(campo) {
+        return (campo.opcoes || []).map((opcao, i) => typeof opcao === 'object'
+            ? opcao : {id: String(i + 1), texto: String(opcao)});
+    }
+
+    function htmlProcedimentos(campo) {
+        const grupos = (campo.catalogo || []).map(grupo => `
+            <div class="proc-grupo mb-2">
+                <div class="fw-bold small text-secondary border-bottom mb-1">${esc(grupo.grupo)}</div>
+                ${grupo.itens.map(item => `
+                    <div class="proc-item d-flex align-items-center gap-2 py-1"
+                         data-busca="${esc(semAcento(item.codigo + ' ' + item.nome))}">
+                        <input type="checkbox" class="form-check-input mt-0 proc-check" name="campo_${campo.id}[]"
+                               value="${esc(item.codigo)}" id="proc_${campo.id}_${esc(item.codigo)}">
+                        <label class="form-check-label flex-grow-1 small" for="proc_${campo.id}_${esc(item.codigo)}">
+                            <code>${esc(item.codigo)}</code> ${esc(item.nome)}
+                            <span class="badge bg-light text-secondary border">${esc(item.instrumentos)}</span>
+                        </label>
+                        <input type="number" min="1" max="99" value="1" title="QTD"
+                               class="form-control form-control-sm proc-qtd d-none" style="width: 5rem"
+                               name="campo_${campo.id}_qtd_${esc(item.codigo)}">
+                    </div>`).join('')}
+            </div>`).join('');
+        return `
+            <input type="search" class="form-control form-control-sm mb-2 proc-busca"
+                   placeholder="Buscar por código ou nome" data-campo-id="${campo.id}">
+            <div class="border rounded p-2" style="max-height: 22rem; overflow-y: auto">
+                ${grupos || '<div class="text-muted small">Nenhum procedimento cadastrado (rode importar_procedimentos_sigtap).</div>'}
+            </div>
+            <div class="form-text"><span class="proc-contador" data-campo-id="${campo.id}">0</span> marcado(s).
+                Um documento por procedimento marcado.</div>`;
+    }
+
+    function htmlCampo(campo) {
+        const id = `campo_${campo.id}`;
+        const req = campo.obrigatorio ? 'required' : '';
+        const ajuda = campo.descricao ? `<div class="form-text">${esc(campo.descricao)}</div>` : '';
+        const rotulo = `<label for="${id}" class="form-label">${esc(campo.nome)}${campo.obrigatorio ? '*' : ''}</label>`;
+        let input;
+        switch (campo.tipo) {
+            case 'textarea': {
+                const max = campo.maxlength ? `maxlength="${campo.maxlength}"` : '';
+                input = `<textarea id="${id}" name="${id}" class="form-control" rows="4" ${req} ${max}></textarea>`;
+                break;
+            }
+            case 'number':
+                input = `<input type="number" id="${id}" name="${id}" class="form-control" ${req}>`;
+                break;
+            case 'select':
+                input = `<select id="${id}" name="${id}" class="form-select" ${req}>
+                    <option value="">Selecione...</option>
+                    ${opcoesDe(campo).map(o => `<option value="${esc(o.id)}">${esc(o.texto)}</option>`).join('')}
+                </select>`;
+                break;
+            case 'radio':
+                input = `<div>${opcoesDe(campo).map((o, i) => `
+                    <div class="form-check form-check-inline">
+                        <input type="radio" class="form-check-input" name="${id}" id="${id}_${i}" value="${esc(o.id)}">
+                        <label class="form-check-label" for="${id}_${i}">${esc(o.texto)}</label>
+                    </div>`).join('')}
+                    <div class="form-check form-check-inline">
+                        <input type="radio" class="form-check-input" name="${id}" id="${id}_vazio" value="">
+                        <label class="form-check-label text-muted" for="${id}_vazio">Não marcar</label>
+                    </div></div>`;
+                break;
+            case 'checkbox':
+                input = `<input type="hidden" name="${id}__presente" value="1">
+                    <div>${opcoesDe(campo).map((o, i) => `
+                    <div class="form-check form-check-inline">
+                        <input type="checkbox" class="form-check-input" name="${id}[]" id="${id}_${i}" value="${esc(o.id)}"
+                               data-implica="${esc((o.implica || []).join(','))}">
+                        <label class="form-check-label" for="${id}_${i}">${esc(o.texto)}</label>
+                    </div>`).join('')}</div>`;
+                break;
+            case 'procedimentos':
+                input = htmlProcedimentos(campo);
+                break;
+            case 'label':
+                return '';
+            default:
+                input = `<input type="text" id="${id}" name="${id}" class="form-control" ${req}>`;
+        }
+        return `<div class="mb-3 campo-documento" data-campo-id="${campo.id}">${rotulo}${input}${ajuda}</div>`;
+    }
+
+    function renderCampos() {
         if (!campos.length) {
             camposContainer.innerHTML = '';
             return;
         }
-        let html = `
+        camposContainer.innerHTML = `
             <div class="card mb-4">
                 <div class="card-header bg-secondary text-white">
                     <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Campos do Documento</h5>
                 </div>
-                <div class="card-body">
-        `;
+                <div class="card-body">${campos.map(htmlCampo).join('')}</div>
+            </div>`;
         campos.forEach(campo => {
-            const obrigatorio = campo.obrigatorio ? 'required' : '';
-            const label = `<label for="campo_${campo.id}" class="form-label">${campo.nome}${campo.obrigatorio ? '*' : ''}</label>`;
-            const nameAttr = `name="campo_${campo.id}"`;
-            const nameAttrCheckbox = `name="campo_${campo.id}[]"`;
-
-            const valorPaciente = dadosPaciente[campo.atributo_paciente];
-            let valueFromPaciente = '';
-            if (campo.tipo === 'checkbox' && campo.opcoes && Array.isArray(campo.opcoes)) {
-                if (Array.isArray(valorPaciente)) {
-                    valueFromPaciente = valorPaciente;
-                } else if (typeof valorPaciente === 'string') {
-                    valueFromPaciente = valorPaciente.split(',').map(v => v.trim());
-                } else {
-                    valueFromPaciente = [];
-                }
-            } else {
-                valueFromPaciente = valorPaciente !== undefined ? valorPaciente : '';
+            if (campo.validacoes && campo.validacoes.padrao !== undefined) {
+                definirValor(campo, campo.validacoes.padrao);
             }
-
-            let input = '';
-            switch (campo.tipo) {
-                case 'texto':
-                    input = `<input type="text" id="campo_${campo.id}" ${nameAttr} class="form-control" ${obrigatorio} value="${valueFromPaciente}">`;
-                    break;
-                case 'textarea':
-                    const maxLengthAttr = campo.maxlength ? `maxlength="${campo.maxlength}"` : '';
-                    input = `<textarea id="campo_${campo.id}" ${nameAttr} class="form-control" ${obrigatorio} ${maxLengthAttr}>${valueFromPaciente}</textarea>`;
-                    break;
-                case 'numero':
-                    input = `<input type="number" id="campo_${campo.id}" ${nameAttr} class="form-control" ${obrigatorio} value="${valueFromPaciente}">`;
-                    break;
-                case 'data':
-                    let valorFormatado = '';
-                    if (valueFromPaciente) {
-                        const d = new Date(valueFromPaciente);
-                        if (!isNaN(d)) {
-                            const mm = String(d.getMonth() + 1).padStart(2, '0');
-                            const dd = String(d.getDate()).padStart(2, '0');
-                            const yyyy = d.getFullYear();
-                            valorFormatado = `${mm}/${dd}/${yyyy}`;
-                        }
-                    }
-                    input = `<input type="text" id="campo_${campo.id}" ${nameAttr} class="form-control datepicker" ${obrigatorio} value="${valorFormatado}">`;
-                    break;
-                case 'checkbox':
-                    if (campo.opcoes && Array.isArray(campo.opcoes)) {
-                        input = campo.opcoes.map((opcao, index) => {
-                            const valorOpcao = opcao.id ? String(opcao.id) : (opcao.texto || opcao);
-                            const textoOpcao = opcao.texto || valorOpcao;
-                            const idInput = `campo_${campo.id}_opcao_${index}`;
-                            const checked = valueFromPaciente.includes(valorOpcao) ? 'checked' : '';
-                            return `
-                                <div class="form-check">
-                                    <input type="checkbox" id="${idInput}" ${nameAttrCheckbox} class="form-check-input" value="${valorOpcao}" ${checked}>
-                                    <label class="form-check-label" for="${idInput}">${textoOpcao}</label>
-                                </div>
-                            `;
-                        }).join('');
-                    } else {
-                        const checked = (valueFromPaciente === true || valueFromPaciente === 'True' || valueFromPaciente === 'true') ? 'checked' : '';
-                        input = `
-                            <div class="form-check">
-                                <input type="checkbox" id="campo_${campo.id}" ${nameAttr} class="form-check-input" value="True" ${checked}>
-                                <label class="form-check-label" for="campo_${campo.id}">${campo.nome}</label>
-                            </div>
-                        `;
-                    }
-                    break;
-                case 'select':
-                    if (campo.opcoes && Array.isArray(campo.opcoes)) {
-                        input = `<select id="campo_${campo.id}" ${nameAttr} class="form-select" ${obrigatorio}>`;
-                        input += `<option value="">Selecione...</option>`;
-                        campo.opcoes.forEach(opcao => {
-                            const valorOpcao = opcao.id ? String(opcao.id) : (opcao.texto || opcao);
-                            const textoOpcao = opcao.texto || valorOpcao;
-                            const selected = valueFromPaciente == valorOpcao ? 'selected' : '';
-                            input += `<option value="${valorOpcao}" ${selected}>${textoOpcao}</option>`;
-                        });
-                        input += `</select>`;
-                    }
-                    break;
-                default:
-                    input = `<input type="text" id="campo_${campo.id}" ${nameAttr} class="form-control" ${obrigatorio} value="${valueFromPaciente}">`;
-            }
-
-            html += `<div class="mb-3">${label}${input}</div>`;
-        });
-
-        html += `</div></div>`;
-        camposContainer.innerHTML = html;
-
-        flatpickr(".datepicker", {
-            dateFormat: "m/d/Y",
-            allowInput: true
         });
     }
 
-    function fetchCamposTemplate(templateId) {
-        if (!templateId) {
-            camposContainer.innerHTML = '';
-            return;
+    function elementosDo(campo) {
+        return camposContainer.querySelectorAll(`[name="campo_${campo.id}"], [name="campo_${campo.id}[]"]`);
+    }
+
+    function valorDe(campo) {
+        const els = Array.from(elementosDo(campo));
+        if (campo.tipo === 'radio') {
+            const marcado = els.find(e => e.checked);
+            return marcado ? marcado.value : '';
         }
-
-        fetch(`/api/campos_template_json/${templateId}/`, {
-            credentials: 'same-origin'
-        })
-        .then(response => {
-            if (!response.ok) throw new Error('Erro ao buscar campos do template.');
-            return response.json();
-        })
-        .then(campos => {
-            renderCampos(campos);
-        })
-        .catch(error => {
-            camposContainer.innerHTML = `<div class="alert alert-danger">Erro ao carregar campos do template.</div>`;
-            console.error(error);
-        });
+        if (campo.tipo === 'checkbox') return els.filter(e => e.checked).map(e => e.value);
+        return els.length ? els[0].value : '';
     }
 
-    function fetchDadosPaciente(pacienteId, callback) {
-        if (!pacienteId) {
-            dadosPaciente = {};
-            callback();
-            return;
-        }
-
-        fetch(`/api/paciente_json/${pacienteId}/`, {
-            credentials: 'same-origin'
-        })
-        .then(response => {
-            if (!response.ok) throw new Error('Erro ao buscar dados do paciente.');
-            return response.json();
-        })
-        .then(data => {
-            dadosPaciente = data;
-            callback();
-        })
-        .catch(error => {
-            console.error('Erro ao buscar paciente:', error);
-            dadosPaciente = {};
-            callback();
-        });
-    }
-
-    function atualizarCampos() {
-        const templateId = templateSelect.value;
-        const pacienteId = pacienteSelect.value;
-
-        if (templateId) {
-            fetchDadosPaciente(pacienteId, () => {
-                fetchCamposTemplate(templateId);
-            });
+    function definirValor(campo, valor) {
+        const els = Array.from(elementosDo(campo));
+        if (!els.length || campo.tipo === 'procedimentos') return;
+        if (campo.tipo === 'radio') {
+            els.forEach(e => { e.checked = e.value === String(valor); });
+        } else if (campo.tipo === 'checkbox') {
+            const lista = Array.isArray(valor) ? valor.map(String) : String(valor).split(',').map(v => v.trim());
+            els.forEach(e => { e.checked = lista.includes(e.value); });
         } else {
-            camposContainer.innerHTML = '';
+            els[0].value = valor;
         }
-
-        if (templateId) {
-            const selectedOption = templateSelect.options[templateSelect.selectedIndex];
-            nomeDocumentoInput.value = selectedOption.text;
-        }
+        copiarDependentes(campo);
     }
 
-    if (templateSelect && pacienteSelect && nomeDocumentoInput) {
-        templateSelect.addEventListener('change', atualizarCampos);
-        pacienteSelect.addEventListener('change', atualizarCampos);
-
-        if (templateSelect.value) {
-            atualizarCampos();
-        }
+    function copiarDependentes(origem) {
+        campos.forEach(campo => {
+            if (campo.validacoes && campo.validacoes.copiar_de === origem.nome && !editados.has(String(campo.id))) {
+                definirValor(campo, valorDe(origem));
+            }
+        });
     }
+
+    function aplicarAutomaticos(valores) {
+        campos.forEach(campo => {
+            const chave = String(campo.id);
+            if (editados.has(chave) || !(chave in valores)) return;
+            definirValor(campo, valores[chave]);
+        });
+    }
+
+    function carregarAutomaticos() {
+        if (!templateSelect.value) return;
+        const params = new URLSearchParams({
+            template: templateSelect.value,
+            paciente: pacienteSelect.value,
+            medico: medicoSelect.value,
+            data: dataEditada ? dataInput.value : '',
+        });
+        const atual = ++requisicao;
+        fetch(`${URL_AUTOMATICOS}?${params}`, {credentials: 'same-origin'})
+            .then(r => { if (!r.ok) throw new Error('Erro ao buscar valores automáticos.'); return r.json(); })
+            .then(dados => {
+                if (atual !== requisicao) return;
+                if (!dataEditada) dataInput.value = dados.data_atendimento;
+                document.getElementById('medico-obrigatorio').classList.toggle('d-none', !dados.exige_medico);
+                medicoSelect.required = dados.exige_medico;
+                document.getElementById('medico-ajuda').textContent =
+                    dados.exige_medico && !medicoSelect.value ? 'Este template usa dados do médico.' : '';
+                aplicarAutomaticos(dados.valores || {});
+            })
+            .catch(erro => console.error(erro));
+    }
+
+    function carregarTemplate() {
+        editados = new Set();
+        const templateId = templateSelect.value;
+        if (!templateId) {
+            campos = [];
+            renderCampos();
+            return;
+        }
+        nomeDocumentoInput.value = templateSelect.options[templateSelect.selectedIndex].text.trim();
+        fetch(`${URL_CAMPOS}${templateId}/`, {credentials: 'same-origin'})
+            .then(r => { if (!r.ok) throw new Error('Erro ao buscar campos do template.'); return r.json(); })
+            .then(lista => {
+                campos = lista;
+                renderCampos();
+                carregarAutomaticos();
+            })
+            .catch(erro => {
+                camposContainer.innerHTML = '<div class="alert alert-danger">Erro ao carregar campos do template.</div>';
+                console.error(erro);
+            });
+    }
+
+    camposContainer.addEventListener('input', marcarEditado);
+    camposContainer.addEventListener('change', marcarEditado);
+
+    function marcarEditado(evento) {
+        const alvo = evento.target;
+        if (alvo.classList.contains('proc-busca')) {
+            filtrarProcedimentos(alvo);
+            return;
+        }
+        const bloco = alvo.closest('.campo-documento');
+        if (!bloco) return;
+        const campo = campos.find(c => String(c.id) === bloco.dataset.campoId);
+        if (!campo) return;
+        editados.add(String(campo.id));
+        if (campo.tipo === 'checkbox' && alvo.checked && alvo.dataset.implica) {
+            alvo.dataset.implica.split(',').forEach(implicada => {
+                const el = bloco.querySelector(`input[type=checkbox][value="${CSS.escape(implicada)}"]`);
+                if (el) el.checked = true;
+            });
+        }
+        if (campo.tipo === 'procedimentos' && alvo.classList.contains('proc-check')) {
+            const qtd = alvo.closest('.proc-item').querySelector('.proc-qtd');
+            qtd.classList.toggle('d-none', !alvo.checked);
+            bloco.querySelector('.proc-contador').textContent = bloco.querySelectorAll('.proc-check:checked').length;
+        }
+        copiarDependentes(campo);
+    }
+
+    function filtrarProcedimentos(busca) {
+        const termo = semAcento(busca.value.trim());
+        const bloco = busca.closest('.campo-documento');
+        bloco.querySelectorAll('.proc-item').forEach(item => {
+            const marcado = item.querySelector('.proc-check').checked;
+            item.classList.toggle('d-none', Boolean(termo) && !marcado && !item.dataset.busca.includes(termo));
+        });
+        bloco.querySelectorAll('.proc-grupo').forEach(grupo => {
+            grupo.classList.toggle('d-none', !grupo.querySelector('.proc-item:not(.d-none)'));
+        });
+    }
+
+    templateSelect.addEventListener('change', carregarTemplate);
+    pacienteSelect.addEventListener('change', () => { if (!dataInput.dataset.manual) dataEditada = false; carregarAutomaticos(); });
+    medicoSelect.addEventListener('change', carregarAutomaticos);
+    dataInput.addEventListener('change', () => {
+        dataEditada = Boolean(dataInput.value);
+        dataInput.dataset.manual = dataEditada ? '1' : '';
+        carregarAutomaticos();
+    });
+
+    if (templateSelect.value) carregarTemplate();
 });
 </script>
-
-
-
 {% endblock %}

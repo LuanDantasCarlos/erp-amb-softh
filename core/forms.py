@@ -68,6 +68,16 @@ class GerarDocumentoForm(forms.Form):
         widget=forms.Textarea(attrs={'rows': 3}),
         required=False
     )
+    medico_id = forms.IntegerField(
+        label="Médico",
+        widget=forms.Select(),
+        required=False
+    )
+    data_atendimento = forms.DateField(
+        label="Data do atendimento",
+        required=False,
+        input_formats=['%Y-%m-%d', '%d/%m/%Y'],
+    )
     campos = forms.JSONField(
         label="Campos do Template",
         required=False,

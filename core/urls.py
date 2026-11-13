@@ -9,7 +9,8 @@ from .views_site import (
     home, 
     paciente_list, paciente_create, paciente_update, paciente_detail, paciente_documentos,
     template_list, template_create, template_update, template_detail,
-    documento_list, documento_detail, documento_download, gerar_documento, campos_template_json,paciente_json
+    documento_list, documento_detail, documento_download, gerar_documento, campos_template_json, paciente_json,
+    valores_automaticos,
 )
 
 router = DefaultRouter()
@@ -48,6 +49,7 @@ site_urlpatterns = [
 
     path('campos_template_json/<int:template_id>/', campos_template_json, name='campos_template_json'),
     path('paciente_json/<int:paciente_id>/', paciente_json, name='paciente_json'),
+    path('valores_automaticos/', valores_automaticos, name='valores_automaticos'),
 
 
 

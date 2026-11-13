@@ -6,7 +6,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.template import Template as DjangoTemplate, Context
+from django.db import transaction
 from django.db.models import F, Q
+import logging
 from django.utils import timezone
 from datetime import date, timedelta
 from django.http import HttpResponse, FileResponse
@@ -14,6 +16,8 @@ import os
 from django.http import JsonResponse
 from django.forms.models import model_to_dict
 from reportlab.pdfbase import pdfmetrics
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -24,6 +28,13 @@ from .forms import GerarDocumentoForm,TemplateDocumentoForm, PacienteForm
 from core.serializers import GerarDocumentoSerializer
 from .utils import gerar_documento_pdf, calcular_maxchars_textarea
 from .agenda import anotar_atendimento_no_dia, anotar_proximo_atendimento, filtrar_atendimento_no_dia
+from .documentos.engine import gerar_pdf, resolver_valores, valor_para_gravar
+from .documentos.fontes import ContextoDocumento, usa_fonte
+from .documentos.formulario import (
+    SESSAO_ULTIMO_MEDICO, campos_ativos, catalogo_procedimentos, data_atendimento_padrao, ler_campos_post,
+    medico_inicial, valores_iniciais,
+)
+from .models import Medico
 
 
 @login_required
@@ -394,6 +405,98 @@ def _pacientes_para_selecao():
     return anotar_atendimento_no_dia(Paciente.objects.filter(ativo=True), timezone.localdate()).order_by('nome')
 
 
+def _contexto_tela(request, form=None):
+    """Listas e valores iniciais dos selects (paciente, template, médico, data)."""
+    medicos = Medico.objects.filter(ativo=True).order_by('nome')
+    if form is not None and form.is_bound:
+        medico_id = form.data.get('medico_id', '')
+        data_atendimento = form.data.get('data_atendimento', '')
+    else:
+        medico = medico_inicial(request)
+        medico_id = str(medico.pk) if medico else ''
+        data_atendimento = ''
+    return {
+        'pacientes': _pacientes_para_selecao(),
+        'templates': TemplateDocumento.objects.filter(ativo=True).order_by('nome'),
+        'medicos': medicos,
+        'medico_id_selecionado': str(medico_id or ''),
+        'data_atendimento_selecionada': data_atendimento,
+    }
+
+
+def _valores_para_validacao(finais):
+    """O serializer aceita string ou lista de strings: procedimentos vão como JSON."""
+    resultado = {}
+    for chave, valor in finais.items():
+        if valor in ('', [], None):
+            continue
+        if isinstance(valor, list) and all(isinstance(v, str) for v in valor):
+            resultado[chave] = valor
+        else:
+            resultado[chave] = valor if isinstance(valor, str) else valor_para_gravar(valor)
+    return resultado
+
+
+def _gerar_documento_post(request, form):
+    """Cria o Documento e devolve o PDF; em erro, registra a mensagem e devolve None."""
+    paciente = Paciente.objects.get(id=form.cleaned_data['paciente_id'])
+    template = TemplateDocumento.objects.get(id=form.cleaned_data['template_id'])
+    nome_documento = form.cleaned_data['nome_documento']
+    observacoes = form.cleaned_data.get('observacoes', '')
+    medico = None
+    if form.cleaned_data.get('medico_id'):
+        medico = Medico.objects.filter(pk=form.cleaned_data['medico_id'], ativo=True).first()
+    data_atendimento = form.cleaned_data.get('data_atendimento') or data_atendimento_padrao(paciente)
+
+    campos = campos_ativos(template.pk)
+    if medico is None and usa_fonte(campos, 'medico'):
+        messages.error(request, 'Selecione o médico: este template usa dados do médico.')
+        return None
+    if not template.arquivo_template:
+        messages.error(request, 'O template selecionado não possui um arquivo PDF associado.')
+        return None
+
+    digitados, manter_vazios = ler_campos_post(campos, request.POST)
+    contexto = ContextoDocumento(paciente=paciente, medico=medico, data_atendimento=data_atendimento)
+    finais = resolver_valores(campos, digitados, contexto, manter_vazios)
+
+    serializer = GerarDocumentoSerializer(data={
+        'paciente_id': paciente.pk,
+        'template_id': template.pk,
+        'nome_documento': nome_documento,
+        'observacoes': observacoes,
+        'campos': _valores_para_validacao(finais),
+    })
+    if not serializer.is_valid():
+        messages.error(request, f'Erro na validação dos campos: {serializer.errors}')
+        return None
+    for campo in campos:
+        if campo.tipo_campo == 'procedimentos' and campo.obrigatorio and not finais.get(str(campo.id)):
+            messages.error(request, f'Marque ao menos um item em "{campo.nome_campo}".')
+            return None
+
+    pdf_buffer = gerar_pdf(template, finais)
+    documento = Documento.objects.create(
+        paciente=paciente,
+        template=template,
+        nome=nome_documento,
+        emitido_por=request.user,
+        observacoes=observacoes,
+        medico=medico,
+        data_atendimento=data_atendimento,
+    )
+    documento.registrar_acao(request.user, "gerado")
+    CampoPreenchidoDocumento.objects.bulk_create([
+        CampoPreenchidoDocumento(documento=documento, campo_template=campo,
+                                 valor=valor_para_gravar(finais.get(str(campo.id), '')))
+        for campo in campos
+    ])
+    if medico is not None:
+        request.session[SESSAO_ULTIMO_MEDICO] = medico.pk
+    return FileResponse(pdf_buffer, as_attachment=True, filename=f"{nome_documento}.pdf",
+                        content_type='application/pdf')
+
+
 @login_required
 def gerar_documento(request):
     initial = {}
@@ -412,107 +515,63 @@ def gerar_documento(request):
 
         if 'preview' in request.POST:
             if form.is_valid():
-                try:
-                    selected_paciente = Paciente.objects.get(id=form.cleaned_data['paciente_id'])
-                    selected_template = TemplateDocumento.objects.get(id=form.cleaned_data['template_id'])
-                    campos_template = CampoTemplateDocumento.objects.filter(template=selected_template)
-                    messages.info(request, 'Visualização carregada com sucesso.')
-                except Exception as e:
-                    messages.error(request, f'Erro ao carregar visualização: {str(e)}')
+                selected_paciente = Paciente.objects.get(id=form.cleaned_data['paciente_id'])
+                selected_template = TemplateDocumento.objects.get(id=form.cleaned_data['template_id'])
+                campos_template = CampoTemplateDocumento.objects.filter(template=selected_template)
+                messages.info(request, 'Visualização carregada com sucesso.')
             else:
                 messages.error(request, f'Erro no formulário: {form.errors}')
         elif form.is_valid():
-            paciente_id = form.cleaned_data['paciente_id']
-            template_id = form.cleaned_data['template_id']
-            nome_documento = form.cleaned_data['nome_documento']
-            observacoes = form.cleaned_data.get('observacoes', '')
-
-            campos_valores = {}
-            for campo in CampoTemplateDocumento.objects.filter(template_id=template_id):
-                chave = str(campo.id)
-                if campo.tipo_campo == 'checkbox':
-                    valor = request.POST.getlist(f'campo_{chave}[]')
-                else:
-                    valor = request.POST.get(f'campo_{chave}', '')
-                campos_valores[chave] = valor
-
-            serializer = GerarDocumentoSerializer(data={
-                'paciente_id': paciente_id,
-                'template_id': template_id,
-                'nome_documento': nome_documento,
-                'observacoes': observacoes,
-                'campos': campos_valores,
-            })
-
-            if serializer.is_valid():
-                try:
-                    paciente = Paciente.objects.get(id=paciente_id)
-                    template = TemplateDocumento.objects.get(id=template_id)
-
-                    documento = Documento.objects.create(
-                        paciente=paciente,
-                        template=template,
-                        nome=nome_documento,
-                        emitido_por=request.user,
-                        observacoes=observacoes
-                    )
-                    documento.registrar_acao(request.user, "gerado")
-                    messages.info(request, 'Documento criado com sucesso.')
-
-                    for campo in CampoTemplateDocumento.objects.filter(template=template):
-                        valor = campos_valores.get(str(campo.id), '')
-                        CampoPreenchidoDocumento.objects.create(
-                            documento=documento,
-                            campo_template=campo,
-                            valor=valor
-                        )
-                    messages.info(request, 'Campos preenchidos salvos.')
-
-                    if not template.arquivo_template:
-                        messages.error(request, 'O template selecionado não possui um arquivo PDF associado.')
-                        return render(request, 'core/gerar_documento.html', {
-                            'form': form,
-                            'pacientes': _pacientes_para_selecao(),
-                            'templates': TemplateDocumento.objects.filter(ativo=True),
-                            'from_url': from_url,
-                        })
-
-                    messages.info(request, 'Gerando PDF...')
-                    pdf_buffer = gerar_documento_pdf(paciente, template, campos_valores)
-                    if pdf_buffer:
-                        messages.success(request, 'PDF gerado com sucesso.')
-                        return FileResponse(
-                            pdf_buffer,
-                            as_attachment=True,
-                            filename=f"{nome_documento}.pdf",
-                            content_type='application/pdf'
-                        )
-                    else:
-                        documento.delete()
-                        messages.error(request, 'Erro ao gerar o PDF.')
-                except Exception as e:
-                    messages.error(request, f'Erro ao gerar o documento: {str(e)}')
-            else:
-                messages.error(request, f'Erro na validação dos campos: {serializer.errors}')
+            try:
+                with transaction.atomic():
+                    resposta = _gerar_documento_post(request, form)
+                if resposta is not None:
+                    return resposta
+            except Exception:
+                logger.exception('Erro ao gerar documento')
+                messages.error(request, 'Erro ao gerar o documento. Detalhes no log do servidor.')
         else:
             messages.error(request, f'Erro no formulário: {form.errors}')
     else:
         form = GerarDocumentoForm(initial=initial)
 
-    pacientes = _pacientes_para_selecao()
-    templates = TemplateDocumento.objects.filter(ativo=True).order_by('nome')
-
     context = {
         'form': form,
-        'pacientes': pacientes,
-        'templates': templates,
         'from_url': from_url,
         'selected_paciente': selected_paciente,
         'selected_template': selected_template,
         'campos_template': campos_template,
+        **_contexto_tela(request, form),
     }
 
     return render(request, 'core/gerar_documento.html', context)
+
+
+@login_required
+def valores_automaticos(request):
+    """Valores automáticos dos campos para pré-preencher o formulário (spec §3.5).
+
+    GET ?template=&paciente=&medico=&data=AAAA-MM-DD. Sem `data`, devolve a data padrão do atendimento.
+    """
+    template = TemplateDocumento.objects.filter(pk=_inteiro(request.GET.get('template'))).first()
+    paciente = Paciente.objects.filter(pk=_inteiro(request.GET.get('paciente'))).first()
+    medico = Medico.objects.filter(pk=_inteiro(request.GET.get('medico')), ativo=True).first()
+    data = _parse_data_param(request.GET.get('data', '').strip()) or data_atendimento_padrao(paciente)
+    campos = campos_ativos(template.pk) if template else []
+    contexto = ContextoDocumento(paciente=paciente, medico=medico, data_atendimento=data)
+    return JsonResponse({
+        'data_atendimento': data.isoformat(),
+        'exige_medico': usa_fonte(campos, 'medico'),
+        'valores': valores_iniciais(campos, contexto),
+    })
+
+
+def _inteiro(valor):
+    try:
+        return int(valor)
+    except (TypeError, ValueError):
+        return None
+
 
 def calcular_maxlength_textarea(width_pt, height_pt, font_name="Helvetica", font_size=12, line_height_factor=1.2):
     line_height = font_size * line_height_factor
@@ -524,8 +583,9 @@ def calcular_maxlength_textarea(width_pt, height_pt, font_name="Helvetica", font
 
 @login_required
 def campos_template_json(request, template_id):
-    campos = CampoTemplateDocumento.objects.filter(template_id=template_id)
+    campos = campos_ativos(template_id)
     campos_list = []
+    catalogo = None
 
     for campo in campos:
         campo_dict = {
@@ -537,7 +597,13 @@ def campos_template_json(request, template_id):
             'posicao': campo.posicao,
             'obrigatorio': campo.obrigatorio,
             'atributo_paciente': campo.atributo_paciente,
+            'validacoes': {k: v for k, v in campo.validacoes.items() if k in ('padrao', 'copiar_de')}
+            if isinstance(campo.validacoes, dict) else {},
         }
+        if campo.tipo_campo == 'procedimentos':
+            if catalogo is None:
+                catalogo = catalogo_procedimentos()
+            campo_dict['catalogo'] = catalogo
 
         # Calcule maxlength apenas se for textarea e se width/height existirem
         if campo.tipo_campo == 'textarea':
@@ -550,11 +616,11 @@ def campos_template_json(request, template_id):
                 # Use a função realista do utils.py!
                 campo_dict['maxlength'] = calcular_maxchars_textarea(width, height, font_name, font_size)
 
-        if campo.tipo_campo in ['checkbox', 'select'] and campo.opcoes:
+        if campo.tipo_campo in ['checkbox', 'select', 'radio'] and campo.opcoes:
             opcoes = []
             for idx, opc in enumerate(campo.opcoes):
                 if isinstance(opc, dict):
-                    opc_copy = dict(opc)
+                    opc_copy = {k: v for k, v in opc.items() if k in ('id', 'texto', 'implica')}
                     if 'id' not in opc_copy:
                         opc_copy['id'] = str(idx + 1)
                     opcoes.append(opc_copy)
