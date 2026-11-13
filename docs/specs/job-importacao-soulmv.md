@@ -170,6 +170,53 @@ o extrator roda numa máquina Windows local (Agendador de Tarefas) e envia o CSV
 - Migrar dados do SQLite atual (templates/campos cadastrados) para o banco do cPanel
 - Cron horário · atualizar README e CHANGELOG
 
+### Fase 2 — mapeamento estático do Soul MV (13/11/2026, feito a partir do servidor)
+
+Fonte: bundle Angular público (`main`, `vendor`, chunks `6` e `80`) e
+`/consultas-exames/assets/environments/config.production.json`. Ainda não validado com login.
+
+**Config:** `auth.type=OAUTH2`, `authenticationFlow=AUTHORIZATION_CODE`, `modulo=4`,
+`backPath=/consultas-exames/api/`, `oAuth2Path=/consultas-exames/api/oauth2`.
+
+**Login (a confirmar no spike):**
+1. `GET /consultas-exames/api/oauth2/login` → `204` com `Location:`
+   `/public-health-sso/oauth2.0/authorize?response_type=token&client_id=consultasExamesOauth&redirect_uri=https://regulacao.saude.es.gov.br/consultas-exames/#/login&state=…&code_challenge=…&code_challenge_method=S256`
+2. CAS (Apereo) em `/public-health-sso/login`: formulário com `username`, `password`, `execution`, `_eventId=submit`
+3. Retorno para `…/consultas-exames/#/login?access_token=AT-…` (o vídeo mostra isso na URL). O front também tem `GET oauth2/token?code=…`
+4. Seleção de perfil: o front monta `base64(JSON{user, profile, company, professionalBond})` (`getProfileToken`) e envia em **todas** as requisições no header `authorizationService.MVFOR_PROFILE` (o nome exato precisa ser confirmado)
+
+**Listagem/export:** `GET /consultas-exames/api/solicitacoes-consulta-regulador-com-vinculos?<filtro>`
+com `Authorization: Bearer <access_token>` + header de perfil. Devolve um array JSON; o próprio front monta o CSV
+(BOM UTF-8, aspas só quando há vírgula, vírgula sobrando no fim da linha). Ou seja: **o export é client-side**.
+
+Filtro (`criarFiltro`, query string sem nulos): `idUnidadeExecutante`, `tipoData`, `periodoInicial`/`periodoFinal`
+(`Date.toISOString()` → **UTC**; 00:00 BRT = 03:00Z), `listaSituacoes` (ids; o default da tela tem 27), `prioridade` (5 = todas),
+`tipoSolicitacao`, `idEstabelecimento`/`idUnidadeSolicitante`, além de flags (`apenasUnidadeEspecifica`, `flagRealizadoForaRede`, …).
+
+Campos JSON → colunas do CSV (chunk 80, `corpoExportaCsv`):
+
+| Coluna | Campo JSON |
+|---|---|
+| Solicitação | `idSolicitacaoProcedimento` |
+| Unidade solicitante | `nomeUnidadeSolicitante` (trim) |
+| Código cidadão | `idCidadao` |
+| CNS do cidadão | `numeroCartaoSus` |
+| CPF do cidadão | `cpf` |
+| Nome social | `nomeCidadaoSocial` |
+| Nome do cidadão | `nomeCidadao` |
+| Data Nascimento | `nascimento` (dd/mm/aaaa) |
+| Data da solicitação | `dataSolicitacao` |
+| Item agendamento | `descricaoItemAgendamento` |
+| Data da agenda | `flagRealizadoForaRede ? dataAtendimento : dataAgenda` (dd/mm/aaaa HH:MM) |
+| demais | `nomeProfExecPorSit`, `dataMarcacao`, `situacao`, `descricaMotivoProcedNaoRealiz`, `flagEmissaoGuia`, `dataMarcacaoOriginal`, `marcadoPor`, `tipoSolicitacao`, `descricaoPrioridade` |
+
+**Decisão de implementação:** o cliente HTTP gera **o mesmo CSV** que o front gera (mesmas 21 colunas e formatação)
+e o entrega ao `importar_arquivo`. Assim o leitor, a idempotência por sha256 e a auditoria continuam iguais.
+
+**Pendente para o spike com login (no servidor):** campos reais do formulário CAS; nome do header de perfil;
+endpoints e ids de usuário/perfil/vínculo; id do estabelecimento `RCS SOLUCOES MEDICAS S/A`; id de `tipoData=AGENDAMENTO`;
+ids da lista de situações default; formato das datas no JSON (epoch ou ISO).
+
 ### Critérios de aceite
 - [ ] Reimportar o mesmo CSV não cria nada (status `ignorado` ou 0 criados)
 - [ ] Paciente já existente (por código ou CPF) não tem nenhum campo alterado
