@@ -118,13 +118,13 @@
                 <div class="mb-3">
                     <h5 class="mb-2">{{ documento.paciente.nome }}</h5>
                     <p class="mb-1">
-                        <strong>CPF:</strong> {{ documento.paciente.cpf }}
+                        <strong>CPF:</strong> {{ documento.paciente.cpf|default:"Não informado" }}
                     </p>
                     <p class="mb-1">
                         <strong>Data de Nascimento:</strong> {{ documento.paciente.data_nascimento|date:"d/m/Y" }}
                     </p>
                     <p class="mb-0">
-                        <strong>Contato:</strong> {{ documento.paciente.celular }}
+                        <strong>Contato:</strong> {{ documento.paciente.celular|default:"Não informado" }}
                         {% if documento.paciente.email %}
                         <br><small class="text-muted">{{ documento.paciente.email }}</small>
                         {% endif %}

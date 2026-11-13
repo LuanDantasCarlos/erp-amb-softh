@@ -18,8 +18,10 @@ class PacienteForm(forms.ModelForm):
         }
 
     def clean_cpf(self):
-        cpf = self.cleaned_data.get('cpf', '')
+        cpf = self.cleaned_data.get('cpf') or ''
         cpf_nums = ''.join(filter(str.isdigit, cpf))
+        if not cpf_nums:
+            return None
         if len(cpf_nums) != 11:
             raise forms.ValidationError("CPF deve conter 11 dígitos.")
         if cpf_nums == cpf_nums[0] * 11:

@@ -2,7 +2,7 @@
 Admin configuration for the core app
 """
 from django.contrib import admin
-from .models import Paciente, TemplateDocumento, Documento
+from .models import Agendamento, Documento, ExecucaoImportacao, Paciente, TemplateDocumento
 
 
 @admin.register(Paciente)
@@ -21,6 +21,10 @@ class PacienteAdmin(admin.ModelAdmin):
         }),
         ('Outras Informações', {
             'fields': ('observacoes', 'ativo')
+        }),
+        ('Soul MV', {
+            'fields': ('codigo_cidadao', 'cns', 'nome_social', 'origem'),
+            'classes': ('collapse',)
         }),
     )
 
@@ -77,3 +81,33 @@ class DocumentoAdmin(admin.ModelAdmin):
             if not obj.emitido_por:
                 obj.emitido_por = request.user
         super().save_model(request, obj, form, change)
+
+
+@admin.register(Agendamento)
+class AgendamentoAdmin(admin.ModelAdmin):
+    list_display = ('solicitacao', 'paciente', 'item_agendamento', 'data_agenda', 'created_at')
+    list_filter = ('data_agenda', 'created_at')
+    search_fields = ('solicitacao', 'paciente__nome', 'paciente__codigo_cidadao', 'item_agendamento')
+    date_hierarchy = 'data_agenda'
+    raw_id_fields = ('paciente',)
+    list_select_related = ('paciente',)
+
+
+@admin.register(ExecucaoImportacao)
+class ExecucaoImportacaoAdmin(admin.ModelAdmin):
+    """Somente leitura: monitoramento do job de importação Soul MV."""
+    list_display = (
+        'iniciado_em', 'finalizado_em', 'status', 'linhas_lidas', 'pacientes_criados',
+        'agendamentos_criados', 'linhas_rejeitadas', 'arquivo',
+    )
+    list_filter = ('status', 'iniciado_em')
+    date_hierarchy = 'iniciado_em'
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

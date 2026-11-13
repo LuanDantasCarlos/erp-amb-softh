@@ -23,17 +23,29 @@ class Paciente(BaseModel):
         ('F', _('Feminino')),
         ('O', _('Outro')),
     )
+    ORIGEM_MANUAL = 'manual'
+    ORIGEM_SOULMV = 'soulmv'
+    ORIGEM_CHOICES = (
+        (ORIGEM_MANUAL, _('Manual')),
+        (ORIGEM_SOULMV, _('Soul MV')),
+    )
 
     nome = models.CharField(_('Nome Completo'), max_length=255)
     data_nascimento = models.DateField(_('Data de Nascimento'))
-    cpf = models.CharField(_('CPF'), max_length=14, unique=True, help_text='Formato: 000.000.000-00')
+    cpf = models.CharField(
+        _('CPF'), max_length=14, unique=True, null=True, blank=True, help_text='Formato: 000.000.000-00'
+    )
     rg = models.CharField(_('RG'), max_length=20, blank=True, null=True)
-    sexo = models.CharField(_('Sexo'), max_length=1, choices=SEXO_CHOICES)
+    sexo = models.CharField(_('Sexo'), max_length=1, choices=SEXO_CHOICES, null=True, blank=True)
     telefone = models.CharField(_('Telefone'), max_length=20, blank=True, null=True)
-    celular = models.CharField(_('Celular'), max_length=20)
+    celular = models.CharField(_('Celular'), max_length=20, null=True, blank=True)
     email = models.EmailField(_('Email'), blank=True, null=True)
     observacoes = models.TextField(_('Observações'), blank=True, null=True)
     ativo = models.BooleanField(_('Ativo'), default=True)
+    codigo_cidadao = models.CharField(_('Código cidadão (Soul MV)'), max_length=20, unique=True, null=True, blank=True)
+    cns = models.CharField(_('CNS'), max_length=15, null=True, blank=True, db_index=True)
+    nome_social = models.CharField(_('Nome social'), max_length=255, null=True, blank=True)
+    origem = models.CharField(_('Origem'), max_length=10, choices=ORIGEM_CHOICES, default=ORIGEM_MANUAL)
 
     class Meta:
         verbose_name = _('Paciente')
@@ -45,7 +57,58 @@ class Paciente(BaseModel):
         ]
 
     def __str__(self):
-        return f"{self.nome} - {self.cpf}"
+        return f"{self.nome} - {self.cpf or 'sem CPF'}"
+
+
+class Agendamento(BaseModel):
+    paciente = models.ForeignKey(
+        Paciente, on_delete=models.PROTECT, related_name='agendamentos', verbose_name=_('Paciente')
+    )
+    solicitacao = models.CharField(_('Solicitação'), max_length=20, unique=True)
+    item_agendamento = models.CharField(_('Item de agendamento'), max_length=255)
+    data_agenda = models.DateTimeField(_('Data da agenda'), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _('Agendamento')
+        verbose_name_plural = _('Agendamentos')
+        ordering = ['-data_agenda']
+        indexes = [models.Index(fields=['paciente', 'data_agenda'])]
+
+    def __str__(self):
+        return f"{self.solicitacao} - {self.item_agendamento}"
+
+
+class ExecucaoImportacao(models.Model):
+    STATUS_EXECUTANDO = 'executando'
+    STATUS_SUCESSO = 'sucesso'
+    STATUS_ERRO = 'erro'
+    STATUS_IGNORADO = 'ignorado'
+    STATUS_CHOICES = (
+        (STATUS_EXECUTANDO, _('Executando')),
+        (STATUS_SUCESSO, _('Sucesso')),
+        (STATUS_ERRO, _('Erro')),
+        (STATUS_IGNORADO, _('Ignorado')),
+    )
+
+    iniciado_em = models.DateTimeField(_('Iniciado em'), default=timezone.now)
+    finalizado_em = models.DateTimeField(_('Finalizado em'), null=True, blank=True)
+    status = models.CharField(_('Status'), max_length=12, choices=STATUS_CHOICES, default=STATUS_EXECUTANDO)
+    arquivo = models.CharField(_('Arquivo'), max_length=500)
+    sha256 = models.CharField(_('SHA-256'), max_length=64, blank=True, db_index=True)
+    linhas_lidas = models.PositiveIntegerField(_('Linhas lidas'), default=0)
+    pacientes_criados = models.PositiveIntegerField(_('Pacientes criados'), default=0)
+    agendamentos_criados = models.PositiveIntegerField(_('Agendamentos criados'), default=0)
+    linhas_rejeitadas = models.PositiveIntegerField(_('Linhas rejeitadas'), default=0)
+    detalhes_rejeicao = models.JSONField(_('Detalhes da rejeição'), default=list, blank=True)
+    erro = models.TextField(_('Erro'), blank=True)
+
+    class Meta:
+        verbose_name = _('Execução de importação')
+        verbose_name_plural = _('Execuções de importação')
+        ordering = ['-iniciado_em']
+
+    def __str__(self):
+        return f"{self.iniciado_em:%d/%m/%Y %H:%M} - {self.status}"
 
 
 def template_upload_path(instance, filename):

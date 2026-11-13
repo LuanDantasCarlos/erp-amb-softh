@@ -4,3 +4,11 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.11"
 dependencies = []
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "ambulatorio.settings_test"
+python_files = ["test_*.py"]
+testpaths = ["core/tests"]
+filterwarnings = [
+    "ignore:No directory at:UserWarning",
+]

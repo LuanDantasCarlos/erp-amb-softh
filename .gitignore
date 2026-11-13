@@ -172,3 +172,10 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Projeto: dados, artefatos e segredos fora do git
+sistema_ambulatorial.tar.gz
+/media/
+/staticfiles/
+/templates/*/*.pdf
+/logs/

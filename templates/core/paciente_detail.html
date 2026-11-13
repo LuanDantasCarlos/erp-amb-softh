@@ -35,7 +35,7 @@
                 <div class="row mb-2">
                     <div class="col-md-4">
                         <p class="mb-1 text-muted small">CPF</p>
-                        <p class="mb-0 fw-bold">{{ paciente.cpf }}</p>
+                        <p class="mb-0 fw-bold">{{ paciente.cpf|default:"Não informado" }}</p>
                     </div>
                     <div class="col-md-4">
                         <p class="mb-1 text-muted small">RG</p>
@@ -52,12 +52,13 @@
                         <p class="mb-0 fw-bold">
                             {% if paciente.sexo == 'M' %}Masculino
                             {% elif paciente.sexo == 'F' %}Feminino
-                            {% else %}Outro{% endif %}
+                            {% elif paciente.sexo == 'O' %}Outro
+                            {% else %}Não informado{% endif %}
                         </p>
                     </div>
                     <div class="col-md-4">
                         <p class="mb-1 text-muted small">Celular</p>
-                        <p class="mb-0 fw-bold">{{ paciente.celular }}</p>
+                        <p class="mb-0 fw-bold">{{ paciente.celular|default:"Não informado" }}</p>
                     </div>
                     <div class="col-md-4">
                         <p class="mb-1 text-muted small">Telefone</p>

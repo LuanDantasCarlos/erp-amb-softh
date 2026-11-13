@@ -51,10 +51,10 @@
                         </div>
                         
                         <div class="col-md-4">
-                            <label for="id_cpf" class="form-label">CPF*</label>
+                            <label for="id_cpf" class="form-label">CPF</label>
                             <input type="text" name="cpf" id="id_cpf" 
                                    class="form-control mask-cpf {% if form.cpf.errors %}is-invalid{% endif %}" 
-                                   placeholder="000.000.000-00" value="{{ form.cpf.value|default:'' }}" required>
+                                   placeholder="000.000.000-00" value="{{ form.cpf.value|default:'' }}">
                             {% if form.cpf.errors %}
                             <div class="invalid-feedback">
                                 {% for error in form.cpf.errors %}{{ error }}{% endfor %}
@@ -75,9 +75,9 @@
                         </div>
                         
                         <div class="col-md-4">
-                            <label for="id_sexo" class="form-label">Sexo*</label>
+                            <label for="id_sexo" class="form-label">Sexo</label>
                             <select name="sexo" id="id_sexo" 
-                                    class="form-select {% if form.sexo.errors %}is-invalid{% endif %}" required>
+                                    class="form-select {% if form.sexo.errors %}is-invalid{% endif %}">
                                 <option value="" {% if not form.sexo.value %}selected{% endif %}>Selecione</option>
                                 <option value="M" {% if form.sexo.value == 'M' %}selected{% endif %}>Masculino</option>
                                 <option value="F" {% if form.sexo.value == 'F' %}selected{% endif %}>Feminino</option>
@@ -103,10 +103,10 @@
                         </div>
                         
                         <div class="col-md-4">
-                            <label for="id_celular" class="form-label">Celular*</label>
+                            <label for="id_celular" class="form-label">Celular</label>
                             <input type="text" name="celular" id="id_celular" 
                                    class="form-control mask-celular {% if form.celular.errors %}is-invalid{% endif %}" 
-                                   placeholder="(00) 00000-0000" value="{{ form.celular.value|default:'' }}" required>
+                                   placeholder="(00) 00000-0000" value="{{ form.celular.value|default:'' }}">
                             {% if form.celular.errors %}
                             <div class="invalid-feedback">
                                 {% for error in form.celular.errors %}{{ error }}{% endfor %}

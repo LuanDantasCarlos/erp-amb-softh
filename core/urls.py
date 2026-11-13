@@ -3,6 +3,7 @@ from django.contrib.auth import views as auth_views
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from .views_integracao import ImportarSoulMVView
 from .views import PacienteViewSet, TemplateDocumentoViewSet, DocumentoViewSet, CampoTemplateDocumentoViewSet
 from .views_site import (
     home, 
@@ -22,6 +23,7 @@ api_urlpatterns = [
     path('', include(router.urls)),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('integracao/soulmv/importar/', ImportarSoulMVView.as_view(), name='soulmv_importar'),
 ]
 
 site_urlpatterns = [

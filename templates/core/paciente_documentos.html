@@ -25,9 +25,9 @@
             <div class="col-md-6">
                 <h5 class="card-title">{{ paciente.nome }}</h5>
                 <p class="card-text">
-                    <strong>CPF:</strong> {{ paciente.cpf }}<br>
+                    <strong>CPF:</strong> {{ paciente.cpf|default:"Não informado" }}<br>
                     <strong>Data de Nascimento:</strong> {{ paciente.data_nascimento|date:"d/m/Y" }}<br>
-                    <strong>Contato:</strong> {{ paciente.celular }}
+                    <strong>Contato:</strong> {{ paciente.celular|default:"Não informado" }}
                 </p>
             </div>
             <div class="col-md-6 text-md-end">

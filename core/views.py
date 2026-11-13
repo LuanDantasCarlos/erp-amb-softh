@@ -2,6 +2,7 @@ import io
 import os
 from datetime import datetime
 from django.conf import settings
+from django.db.models import ProtectedError
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
@@ -16,6 +17,15 @@ from .utils import gerar_documento_pdf
 class PacienteViewSet(viewsets.ModelViewSet):
     queryset = Paciente.objects.all()
     serializer_class = PacienteSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            return super().destroy(request, *args, **kwargs)
+        except ProtectedError:
+            return Response(
+                {'error': 'Paciente possui agendamentos vinculados e não pode ser excluído. Inative-o.'},
+                status=status.HTTP_409_CONFLICT,
+            )
 
 class TemplateDocumentoViewSet(viewsets.ModelViewSet):
     queryset = TemplateDocumento.objects.all()
